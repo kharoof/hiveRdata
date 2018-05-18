@@ -1,7 +1,3 @@
-library(httr)
-library(data.table)
-library(ggplot2)
-
 #' Loop Through Blog
 #'
 #' Loop throught all the posts of a users blog
@@ -148,7 +144,7 @@ getPosts <- function(query){
                         tag.5=as.character(rep(NA,n)),
                         tags=as.character(rep(NA,n)),
                         created=as.character(rep(NA,n)),
-                        ##                      body=as.character(rep(NA,n)),
+                        body=as.character(rep(NA,n)),
                         json=as.character(rep(NA,n)),
                         depth=as.numeric(rep(NA,n)),
                         votes=as.numeric(rep(NA,n)),
@@ -159,7 +155,8 @@ getPosts <- function(query){
                         ##                      vote_details=as.list(rep(NA,n)),
                         children=as.numeric(rep(NA,n)),
                         pending_payout=as.numeric(rep(NA,n)),
-                        paid_payout=as.numeric(rep(NA,n))
+                        paid_payout=as.numeric(rep(NA,n)),
+                        image_count=as.numeric(rep(NA,n))
   )
 
 
@@ -173,10 +170,10 @@ getPosts <- function(query){
 
     results[i,"created"] <- discussion$created
 
-    ##results[i,"body"] <- tmp[[i]]$body
+    results[i,"body"] <- discussion$body
 
     results[i,"json"] <- discussion$json_metadata
-
+    results[i,"image_count"] <- length(fromJSON(discussion$json_metadata)$image)
     skip=FALSE
 
     result = tryCatch({
@@ -243,5 +240,41 @@ getPosts <- function(query){
 }
 
 
+#' Steem Blockchain Stats
+#'
+#' Return Key Stats for the Steem Blockchain
+#'
+#' @param NULL
+#'
+#' @return xxx
+#'
+#' @examples
+#' None
+#'
+#' @export
+steemStats <- function(){
+  query <- '{"jsonrpc":"2.0", "method":"condenser_api.get_account_count", "params":[], "id":1}'
+  r <- httr::POST("https://api.steemit.com", body = query)
+  data <- httr::content(r, "parsed", "application/json")
+  paste("Number of Accounts : ", data$result)
+}
 
-
+#' getFollow
+#'
+#' Return data for the Selected User
+#'
+#' @param user
+#'
+#' @return blog
+#'
+#' @examples
+#' None
+#'
+#' @export
+getFollow <- function(user){
+  query <- paste0('{"jsonrpc":"2.0", "method":"follow_api.get_follow_count", "params":{"account":"', user ,'"}, "id":1}')
+  r <- httr::POST("https://api.steemit.com", body = query)
+  data <- httr::content(r, "parsed", "application/json")
+  print(paste("Number of Followers : ", data$result$follower_count))
+  (paste("Number Following : ", data$result$following_count))
+}
