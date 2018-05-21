@@ -1,4 +1,3 @@
-
 # steemR user Functions ----
 # These functions will be the main interface for users of the steemR package
 
@@ -149,7 +148,15 @@ cleanData <- function(discussions){
     results[i,"permlink"] <- discussion$permlink
     results[i,"title"] <- discussion$title
     results[i,"created"] <- discussion$created
+
     results[i,"body"] <- discussion$body
+    results[i,"json"] <- discussion$json_metadata
+    results[i,"image_count"] <- length(fromJSON(discussion$json_metadata)$image)
+
+
+
+    results[i,"body"] <- discussion$body
+
     results[i,"json"] <- discussion$json_metadata
     results[i,"image_count"] <- length(fromJSON(discussion$json_metadata)$image)
 
