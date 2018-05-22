@@ -35,6 +35,59 @@ getBlog <- function(username){
   return(results)
 }
 
+#' accountCount
+#'
+#' Get the count of the accounts on the Steem Blockchain
+#'
+#' @param NULL
+#'
+#' @return NULL
+#'
+#' @examples
+#' accountCount()
+#'
+#' @export
+accountCount <- function(){
+  data <- get_account_count()
+  paste("Number of Accounts : ", data$result)
+}
+
+#' getSteemProperties()
+#'
+#' Get the count of the accounts on the Steem Blockchain
+#'
+#' @param NULL
+#'
+#' @return NULL
+#'
+#' @examples
+#' getSteemProperties()
+#'
+#' @export
+getSteemProperties <- function(){
+  data <- get_dynamic_global_properties()
+  data <- cleanGlobalProperties(data$result)
+  return(data)
+}
+
+
+#' getAccount
+#'
+#' Get the details of a user account
+#'
+#' @param username
+#'
+#' @return Account Details
+#'
+#' @examples
+#' getAccount()
+#'
+#' @export
+getAccount <- function(username){
+  data <- get_accounts(username)
+  data <- cleanAccounts(data)
+  return(data)
+}
 
 
 # Steem API Calls ----
@@ -49,9 +102,6 @@ get_discussions_by_author_before_date <- function(username, permlink){
   r <- POST("https://api.steemit.com", body = query)
   data <- content(r, "parsed", "application/json")
   discussions <- data$result$discussions
-
-
-
   return(discussions)
 
 }
@@ -62,8 +112,26 @@ get_account_count <- function(){
   query <- '{"jsonrpc":"2.0", "method":"condenser_api.get_account_count", "params":[], "id":1}'
   r <- httr::POST("https://api.steemit.com", body = query)
   data <- httr::content(r, "parsed", "application/json")
-  paste("Number of Accounts : ", data$result)
+  return(data)
 }
+
+
+# Get the latest steem global properties from the Steem API calls
+get_dynamic_global_properties <- function(){
+  query <- '{"jsonrpc":"2.0", "method":"database_api.get_dynamic_global_properties", "id":1}'
+  r <- httr::POST("https://api.steemit.com", body = query)
+  data <- httr::content(r, "parsed", "application/json")
+  return(data)
+}
+
+# Get the latest steem rewards fund from the Steem API calls
+get_rewards_fund <- function(){
+  query <- '{"jsonrpc":"2.0", "method":"database_api.get_reward_funds", "id":1}'
+  r <- httr::POST("https://api.steemit.com", body = query)
+  data <- httr::content(r, "parsed", "application/json")
+  paste(data$result)
+}
+
 
 #Get the latest number of follow count for the specified user using the Steem API calls
 
@@ -74,6 +142,51 @@ get_follow_count <- function(user){
   print(paste("Number of Followers : ", data$result$follower_count))
   (paste("Number Following : ", data$result$following_count))
 }
+
+#Get details of a users account
+## The Steem API function allows multiple accounts to be returned. We are ignoring this for now.
+
+get_accounts <- function(user){
+  query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_accounts", "params":[["', user ,'"]], "id":1}')
+  r <- httr::POST("https://api.steemit.com", body = query)
+  data <- httr::content(r, "parsed", "application/json")
+  data <- data$result[[1]]
+  return(data)
+}
+
+
+#Get the authors that have been reblogged by the selected user using the Steem API calls
+
+get_blog_authors <- function(user){
+  query <- paste0('{"jsonrpc":"2.0", "method":"follow_api.get_blog_authors", "params":{"blog_account":"', user ,'"}, "id":1}')
+  r <- httr::POST("https://api.steemit.com", body = query)
+  data <- httr::content(r, "parsed", "application/json")
+  data <- data.table::data.table(do.call(rbind, data$result$blog_authors))
+  data <- data.table::data.table(reblogged=unlist(data$author), count=unlist(data$count))
+  data <- data[order(-count)]
+  return(data)
+}
+
+## Get Account History
+
+get_account_history <- function(user, start, end) {
+  query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_account_history", "params":["',user,'",',start,',',end,'], "id":1}')
+  r <- httr::POST("https://api.steemit.com", body = query)
+  data <- httr::content(r, "parsed", "application/json")
+  print(data[[2]])
+}
+
+
+## Get Reblogged by for a post
+
+get_reblogged_by <- function(user, permlink) {
+  query <- paste0('{"jsonrpc":"2.0", "method":"follow_api.get_reblogged_by", "params":{"author":"',user,'","permlink":"',permlink,'"}, "id":1}')
+  r <- httr::POST("https://api.steemit.com", body = query)
+  data <- httr::content(r, "parsed", "application/json")
+  data <- unlist(data$result$accounts)
+  return(data)
+}
+
 
 
 # Utility Functions ----
@@ -215,7 +328,7 @@ cleanData <- function(discussions){
 
   results[,total_payout:= paid_payout + pending_payout]
 
-  results[,datetime:= strptime(results$created, format="%Y-%m-%dT%H:%M:%S")]
+  results[,datetime:= as.POSIXct(results$created, format="%Y-%m-%dT%H:%M:%S")]
   results$created <- NULL
   results[,date:=as.Date(datetime)]
   results[, year_month:=format(date, "%Y-%b")]
@@ -234,4 +347,55 @@ cleanData <- function(discussions){
 
 }
 
+## Convert Vests to Steem Power
+vests.formatter <- function(x){
+  conversionFactor <- getSteemProperties()$total_vesting_shares/getSteemProperties()$total_vesting_fund_steem / 1000
+  return(as.numeric(gsub("VESTS", "", x))/conversionFactor)
+}
 
+##Clean accounts data, only keep key stuff
+cleanAccounts <- function(data){
+
+  json <- fromJSON(data$json_metadata)
+
+  profile_image <- json$profile$profile_image
+  if (length(profile_image)==0) {profile_image=""}
+  profile_location <- json$profile$location
+  if (length(profile_location)==0) {profile_location=""}
+  profile_website <- json$profile$profile_website
+  if (length(profile_website)==0) {profile_website=""}
+  profile_about <- json$profile$about
+  if (length(profile_about)==0) {profile_about=""}
+  cover_image <- json$profile$cover_image
+  if (length(cover_image)==0) {cover_image=""}
+
+  data <- data.table(created=as.POSIXct(data$created, format="%Y-%m-%dT%H:%M:%S"),
+                     rep=reputation.formatter(data$reputation),
+                     balance=as.numeric(gsub("STEEM", "", data$balance)),
+                     savings=as.numeric(gsub("STEEM", "", data$savings_balance)),
+                     vesting=vests.formatter( data$vesting_shares),
+                     vesting_delegated=vests.formatter( data$delegated_vesting_shares),
+                     vesting_received=vests.formatter( data$received_vesting_shares),
+                     profile_links=paste(profile_image, profile_website, cover_image),
+                     profile_about=profile_about,
+                     profile_location = profile_location
+                     )
+  return(data)
+}
+
+##Clean Dynamic Global Properties
+cleanGlobalProperties <- function(data){
+  data <- data.table::data.table(head_block=data$head_block_number,
+                     time=as.POSIXct(data$time, format="%Y-%m-%dT%H:%M:%S"),
+                     current_witness=data$current_witness,
+                     virtual_supply=as.numeric(data$virtual_supply[[1]]),
+                     current_supply=as.numeric(data$current_supply[[1]]),
+                     current_sbd_supply=as.numeric(data$current_sbd_supply[[1]]),
+                     total_vesting_fund_steem=as.numeric(data$total_vesting_fund_steem[[1]]),
+                     total_vesting_shares=as.numeric(data$total_vesting_shares[[1]]),
+                     total_reward_fund_steem=as.numeric(data$total_reward_fund_steem[[1]]),
+                     pending_rewarded_vesting_shares=as.numeric(data$pending_rewarded_vesting_shares[[1]]),
+                     pending_rewarded_vesting_steem=as.numeric(data$pending_rewarded_vesting_steem[[1]])
+                     )
+  return(data)
+}
