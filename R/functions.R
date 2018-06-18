@@ -274,6 +274,7 @@ cleanData <- function(discussions){
     results[i,"image_count"] <- length(fromJSON(discussion$json_metadata)$image)
 
     skip=FALSE
+
     result = tryCatch({
       grepl("tags", results[i,"json"])
     }, error = function(e) {
@@ -320,9 +321,9 @@ cleanData <- function(discussions){
 
     ##results[i, "vote_details"] <- do.call(rbind, (lapply(data$result$discussions[[i]]$active_votes, unlist)))
 
-    results[i,"pending_payout"] <- as.numeric(discussion$pending_payout_value[1])/1000
+    results[i,"pending_payout"] <- as.numeric(discussion$pending_payout_value$amount)/1000
 
-    results[i,"paid_payout"] <- as.numeric(discussion$total_payout_value[1])/1000
+    results[i,"paid_payout"] <- as.numeric(discussion$total_payout_value$amount)/1000
 
   }
 
