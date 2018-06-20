@@ -1,6 +1,31 @@
 # steemR user Functions ----
 # These functions will be the main interface for users of the steemR package
 
+#' getPost
+#'
+#' Get details of a post
+#'
+#' @param username Username of Blog Author.
+#'
+#' @param permlink Permlink of Blog Post
+#'
+#' @return List with Details of Post
+#'
+#' @examples
+#' getPost("eroche")
+#'
+#' @export
+getPost <- function(username, permlink){
+  results <- get_content(username, permlink)
+
+  ##Convert the Raw Steem data to a data.table and add a field with the number of images
+  results <- results
+  results$image_count <- length(fromJSON(results$json_metadata)$image)
+  return(results)
+}
+
+
+
 
 #' getBlog
 #'
@@ -106,6 +131,16 @@ get_discussions_by_author_before_date <- function(username, permlink){
 
 }
 
+# Get the top Steem Witnesses by Vote, we have hardcoded it to 1000, this figure could be adjusted
+get_witnesses_by_vote <- function(limit=1000){
+  query <- paste('{"jsonrpc":"2.0", "method":"condenser_api.get_witnesses_by_vote", "params":[null,',limit,'], "id":1}')
+  r <- httr::POST("https://api.steemit.com", body = query)
+  data <- httr::content(r, "parsed", "application/json")
+  return(data$result)
+}
+
+
+
 
 # Get the latest steem account count from the Steem API calls
 get_account_count <- function(){
@@ -166,6 +201,16 @@ get_blog_authors <- function(user){
   data <- data[order(-count)]
   return(data)
 }
+
+#Get the details of a specific post
+
+get_content <- function(user, permlink){
+  query <- paste0('{"jsonrpc":"2.0", "method":"tags_api.get_discussion", "params":{"author":"',user,'", "permlink":"',permlink,'"}, "id":1}')
+  r <- httr::POST("https://api.steemit.com", body = query)
+  data <- httr::content(r, "parsed", "application/json")
+  return(data$result)
+}
+
 
 ## Get Account History
 
