@@ -25,6 +25,35 @@ getPost <- function(username, permlink){
 }
 
 
+#' getWitnesses
+#'
+#'@param limit Number of Witnesses to Return
+#'
+#' Get details of the witnesses
+#'
+#' @return List with Details of Witnesses
+#'
+#' @examples
+#' getWitnesses() Get first 1000 Witnesses
+#' getWitnesses(20) Get Top 20 Witnesses
+#'
+#' @export
+getWitnesses <- function(limit=1000){
+  results <- get_witnesses_by_vote(limit)
+
+  ##Convert the Raw Steem data to a data.table and add a field with the number of images
+  results <- data.frame(do.call(rbind, results))
+  owner <- unlist(results$owner)
+  version <- unlist(results$running_version)
+  missed <- unlist(results$total_missed)
+  votes <- unlist(results$votes)
+  url <- unlist(results$url)
+  created <- unlist(results$created)
+
+  results <- data.frame(owner=owner, version=version, missed=missed, votes=votes, url=url, created=created)
+  return(results)
+}
+
 
 
 #' getBlog
@@ -59,6 +88,32 @@ getBlog <- function(username){
 
   return(results)
 }
+
+#' getPostsByTag
+#'
+#' Get posts using a specific tag in Chronological order
+#'
+#' @param tag tag to search.
+#'
+#' @param limit number of items to return
+#'
+#' @return Data.Table with Details of Posts
+#'
+#' @examples
+#' getPostsByTag("letseat", 1)
+#'
+#' @export
+getPostsByTag <- function(tag="steem", limit=1){
+  results <- get_discussions_by_created(tag, limit)
+  count <- length(results)
+
+
+  ##Convert the Raw Steem data to a cleaned data.table
+  results <- cleanData(results)
+
+  return(results)
+}
+
 
 #' accountCount
 #'
@@ -119,6 +174,16 @@ getAccount <- function(username){
 # These functions will be wrappers for the steem api calls
 
 #Get the Steem posts from a user profile using the Steem API calls
+
+get_discussions_by_created <- function(tag="steem", limit=100){
+  query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_discussions_by_created", "params":[{"tag":"',tag,'","limit":',limit,'}], "id":1}')
+
+  r <- POST("https://api.steemit.com", body = query)
+  data <- content(r, "parsed", "application/json")
+  return(data$result)
+
+}
+
 
 get_discussions_by_author_before_date <- function(username, permlink){
   link = paste0(',"start_permlink":"',permlink,'"')
@@ -366,9 +431,9 @@ cleanData <- function(discussions){
 
     ##results[i, "vote_details"] <- do.call(rbind, (lapply(data$result$discussions[[i]]$active_votes, unlist)))
 
-    results[i,"pending_payout"] <- as.numeric(discussion$pending_payout_value$amount)/1000
+    tryCatch({results[i,"pending_payout"] <- as.numeric(discussion$pending_payout_value$amount)/1000},error = function(e){results[i,"pending_payout"] <- as.numeric(gsub("SBD", "", discussion$pending_payout_value))})
 
-    results[i,"paid_payout"] <- as.numeric(discussion$total_payout_value$amount)/1000
+    tryCatch({results[i,"paid_payout"] <- as.numeric(discussion$total_payout_value$amount)/1000},error=function(e){results[i,"paid_payout"] <- as.numeric(gsub("SBD","",discussion$total_payout_value))})
 
   }
 
@@ -402,18 +467,28 @@ vests.formatter <- function(x){
 ##Clean accounts data, only keep key stuff
 cleanAccounts <- function(data){
 
-  json <- fromJSON(data$json_metadata)
+  profile_image=""
+  profile_website=""
+  cover_image=""
+  profile_about=""
+  profile_location=""
 
-  profile_image <- json$profile$profile_image
-  if (length(profile_image)==0) {profile_image=""}
-  profile_location <- json$profile$location
-  if (length(profile_location)==0) {profile_location=""}
-  profile_website <- json$profile$profile_website
-  if (length(profile_website)==0) {profile_website=""}
-  profile_about <- json$profile$about
-  if (length(profile_about)==0) {profile_about=""}
-  cover_image <- json$profile$cover_image
-  if (length(cover_image)==0) {cover_image=""}
+  tryCatch({
+    json <- fromJSON(data$json_metadata)
+    profile_image <- json$profile$profile_image
+
+    if (length(profile_image)==0) {profile_image=""}
+      profile_location <- json$profile$location
+    if (length(profile_location)==0) {profile_location=""}
+      profile_website <- json$profile$profile_website
+    if (length(profile_website)==0) {profile_website=""}
+      profile_about <- json$profile$about
+    if (length(profile_about)==0) {profile_about=""}
+      cover_image <- json$profile$cover_image
+    if (length(cover_image)==0) {cover_image=""}
+  },error = function(e){
+    }
+  )
 
   data <- data.table(created=as.POSIXct(data$created, format="%Y-%m-%dT%H:%M:%S"),
                      rep=reputation.formatter(data$reputation),
@@ -424,7 +499,7 @@ cleanAccounts <- function(data){
                      vesting_received=vests.formatter( data$received_vesting_shares),
                      profile_links=paste(profile_image, profile_website, cover_image),
                      profile_about=profile_about,
-                     profile_location = profile_location
+                     profile_location = profile_location, stringsAsFactors = FALSE
                      )
   return(data)
 }
@@ -445,3 +520,5 @@ cleanGlobalProperties <- function(data){
                      )
   return(data)
 }
+
+
