@@ -436,6 +436,7 @@ cleanData <- function(discussions){
 
     results[i,"paid_payout"] <- tryCatch({ as.numeric(discussion$total_payout_value$amount)/1000},error=function(e){ as.numeric(gsub("SBD","",discussion$total_payout_value))})
 
+
   }
 
   results[,total_payout:= paid_payout + pending_payout]
