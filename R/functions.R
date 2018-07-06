@@ -80,6 +80,83 @@ getAccountVotes <- function(user="eroche"){
   return(results)
 }
 
+#' getDelegation
+#'
+#'@param user Account To Query
+#'
+#' @return Data Table with list of delegations
+#'
+#' @examples
+#' getDelegation("eroche")
+#'
+#' @export
+getDelegation <- function(user="eroche"){
+  results <- get_vesting_delegations(user)
+
+  ##Convert the Raw Steem data to a data.table
+  results <- data.frame(do.call(rbind, results))
+
+  delegator <- unlist(results$delegator)
+  delegatee <- unlist(results$delegatee)
+  vests <- unlist(results$vesting_shares)
+  SP <- vests.formatter(vests)
+  date <- as.Date(substr(results$min_delegation_time,1,10))
+  if(length(vests)>0){
+  results <- data.table(delegator=delegator, delegatee=delegatee, vests = vests, SP=SP, date=date, stringsAsFactors=F)}
+  else{
+    return(NULL)
+  }
+  return(results[order(date)])
+}
+
+#' getTransactions
+#'
+#'@param user Account To Query
+#'
+#' @return The Last n number of transactions on an account
+#'
+#' @examples
+#' getTransactions("eroche", 100)
+#'
+#' @export
+getTransactions <- function(user="eroche",n=100){
+  results <- get_account_history(user, -1, n)
+
+
+  n = min(length(results), n)
+
+  data = data.frame(timestamp=rep("",1,n), operation=rep("",1,n),delegation.delegator=rep("",1,n),delegation.delegatee=rep("",1,n),vesting_shares=rep("",1,n), stringsAsFactors = F)
+
+  for(i in 1:n){
+    data[i,"timestamp"] <- results[[i]][[2]]$timestamp
+    data[i,"operation"] <- results[[i]][[2]]$op[[1]]
+    tryCatch({
+    data[i,"delegation.delegator"] <- results[[i]][[2]]$op[[2]]$delegator
+    data[i,"delegation.delegatee"] <- results[[i]][[2]]$op[[2]]$delegatee
+    data[i,"vesting_shares"] <- results[[i]][[2]]$op[[2]]$vesting_shares
+    data[i,"SP"] <- vests.formatter(data[i,"vesting_shares"])
+    },error=function(e){})
+
+  }
+
+  ##Convert the Raw Steem data to a data.table
+ # results <- data.frame(do.call(rbind, results))
+
+ # delegator <- unlist(results$delegator)
+#  delegatee <- unlist(results$delegatee)
+#  vests <- unlist(results$vesting_shares)
+#  SP <- vests.formatter(vests)
+#  date <- as.Date(substr(results$min_delegation_time,1,10))
+#  if(length(vests)>0){
+#    results <- data.table(delegator=delegator, delegatee=delegatee, vests = vests, SP=SP, date=date, stringsAsFactors=F)}
+#  else{
+#    return(NULL)
+#  }
+  return(data.table(data))
+}
+
+
+
 #' getBlog
 #'
 #' Get all main posts from a users blog (excluding Resteems)
@@ -197,6 +274,17 @@ getAccount <- function(username){
 # Steem API Calls ----
 # These functions will be wrappers for the steem api calls
 
+#Get Delegations for an account
+get_vesting_delegations <- function(user="eroche"){
+  query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_vesting_delegations", "params":["',user,'",null,1000], "id":1}')
+
+  r <- POST("https://api.steemit.com", body = query)
+  data <- content(r, "parsed", "application/json")
+  return(data$result)
+
+}
+
+
 #Get Votes by an Account
 get_account_votes <- function(user="eroche"){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_account_votes", "params":["',user,'"], "id":1}')
@@ -206,7 +294,6 @@ get_account_votes <- function(user="eroche"){
   return(data$result)
 
 }
-
 
 
 #Get Posts filtered by a specific tag
@@ -319,7 +406,7 @@ get_account_history <- function(user, start, end) {
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_account_history", "params":["',user,'",',start,',',end,'], "id":1}')
   r <- httr::POST("https://api.steemit.com", body = query)
   data <- httr::content(r, "parsed", "application/json")
-  print(data[[2]])
+  return(data[[2]])
 }
 
 
