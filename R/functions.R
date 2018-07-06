@@ -431,9 +431,15 @@ cleanData <- function(discussions){
 
     ##results[i, "vote_details"] <- do.call(rbind, (lapply(data$result$discussions[[i]]$active_votes, unlist)))
 
+<<<<<<< HEAD
     results[i,"pending_payout"] <- tryCatch({ as.numeric(discussion$pending_payout_value$amount)/1000},error = function(e){ as.numeric(gsub("SBD", "", discussion$pending_payout_value))})
 
     results[i,"paid_payout"] <- tryCatch({ as.numeric(discussion$total_payout_value$amount)/1000},error=function(e){ as.numeric(gsub("SBD","",discussion$total_payout_value))})
+=======
+    tryCatch({results[i,"pending_payout"] <- as.numeric(discussion$pending_payout_value$amount)/1000},error = function(e){results[i,"pending_payout"] <- as.numeric(gsub("SBD", "", discussion$pending_payout_value))})
+
+    tryCatch({results[i,"paid_payout"] <- as.numeric(discussion$total_payout_value$amount)/1000},error=function(e){results[i,"paid_payout"] <- as.numeric(gsub("SBD","",discussion$total_payout_value))})
+>>>>>>> 05ee1d7f683cd6c9c012ce121f6a6ad1c4a3ab37
 
   }
 
