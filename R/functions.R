@@ -54,7 +54,31 @@ getWitnesses <- function(limit=1000){
   return(results)
 }
 
+#' getAccountVotes
+#'
+#'@param user Voting Account
+#'
+#' @return Data Table with list of votes and what they voted on
+#'
+#' @examples
+#' getAccountVotes("eroche")
+#'
+#' @export
+getAccountVotes <- function(user="eroche"){
+  results <- get_account_votes(user)
 
+  ##Convert the Raw Steem data to a data.table
+  results <- data.frame(do.call(rbind, results))
+
+  permlink <- paste0("@",unlist(results$authorperm))
+  percent <- unlist(results$percent)
+  time <- unlist(results$time)
+  date <- as.Date(substr(time,1,10))
+  time <- substr(time,12,25)
+
+  results <- data.table(permlink=permlink, percent=percent, date = date, time=time, stringsAsFactors=F)
+  return(results)
+}
 
 #' getBlog
 #'
@@ -173,8 +197,19 @@ getAccount <- function(username){
 # Steem API Calls ----
 # These functions will be wrappers for the steem api calls
 
-#Get the Steem posts from a user profile using the Steem API calls
+#Get Votes by an Account
+get_account_votes <- function(user="eroche"){
+  query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_account_votes", "params":["',user,'"], "id":1}')
 
+  r <- POST("https://api.steemit.com", body = query)
+  data <- content(r, "parsed", "application/json")
+  return(data$result)
+
+}
+
+
+
+#Get Posts filtered by a specific tag
 get_discussions_by_created <- function(tag="steem", limit=100){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_discussions_by_created", "params":[{"tag":"',tag,'","limit":',limit,'}], "id":1}')
 
@@ -185,6 +220,7 @@ get_discussions_by_created <- function(tag="steem", limit=100){
 }
 
 
+#Get the posts from a user profile
 get_discussions_by_author_before_date <- function(username, permlink){
   link = paste0(',"start_permlink":"',permlink,'"')
   query <- paste0('{"jsonrpc":"2.0", "method":"tags_api.get_discussions_by_author_before_date", "params":{"author":"',username,'","limit":100', link ,'}, "id":1}')
@@ -196,7 +232,7 @@ get_discussions_by_author_before_date <- function(username, permlink){
 
 }
 
-# Get the top Steem Witnesses by Vote, we have hardcoded it to 1000, this figure could be adjusted
+# Get the top Steem Witnesses by Vote
 get_witnesses_by_vote <- function(limit=1000){
   query <- paste('{"jsonrpc":"2.0", "method":"condenser_api.get_witnesses_by_vote", "params":[null,',limit,'], "id":1}')
   r <- httr::POST("https://api.steemit.com", body = query)
