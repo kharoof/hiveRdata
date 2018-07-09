@@ -1,7 +1,7 @@
-Package: steemR
+Package: steemRdata
 Type: Package
 Title: Download and Explore Data from the Steem Blockchain
-Version: 0.1.0
+Version: 0.2.0
 Author: Edward Roche <https://steemit.com/@eroche>
 Maintainer: Edward Roche <edderoiste@gmail.com>
 Description: Wrapper Functions to download and explore data from the Steem Blockchain via RPC calls (using the App Base API).
