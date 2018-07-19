@@ -54,6 +54,38 @@ getWitnesses <- function(limit=1000){
   return(results)
 }
 
+#' getTrending
+#'
+#'@param tag Tag to Filter
+#'
+#'@param limit Number of Posts to Return
+#'
+#' Get details of the Trending Posts
+#'
+#' @return List with Details of Posts
+#'
+#' @examples
+#' getTrending() Get first 100 Trending Posts
+#' getTrending(20) Get Top 10 Trending Posts
+#'
+#' @export
+getTrending <- function(tag="",limit=100){
+  results <- get_discussions_by_trending(tag,limit)
+
+  ##Convert the Raw Steem data to a data.table and add a field with the number of images
+  results <- data.frame(do.call(rbind, results))
+  author <- unlist(results$author)
+  title <- unlist(results$title)
+  permlink <- unlist(results$permlink)
+  pending_payout <- unlist(results$pending_payout_value)
+  votes <- unlist(results$net_votes)
+  comments <- unlist(results$children)
+  created <- unlist(results$created)
+
+  results <- data.table(author=author, title=title, permlink=permlink, pending_payout=pending_payout, votes=votes, comments=comments, created=created)
+  return(results)
+}
+
 #' getAccountVotes
 #'
 #'@param user Voting Account
@@ -109,6 +141,30 @@ getDelegation <- function(user="eroche"){
   return(results[order(date)])
 }
 
+#' getReplies
+#'
+#'@param user Account To Query
+#'
+#'@param permlink Account To Query
+#'
+#' @return Data Table with list of delegations
+#'
+#' @examples
+#' getReplies("eroche", "data-wrangling-with-r")
+#'
+#' @export
+getReplies <- function(user, permlink){
+  results <- get_content_replies(user, permlink)
+
+  tryCatch({comments <- length(results[1]$discussions)
+
+   data.table::data.table(comment.authors=unlist(lapply(1:comments, function(x) results[1]$discussions[[x]]$author)))},error=function(e){
+     data.table::data.table(comment.authors="")})
+
+}
+
+
+
 #' getTransactions
 #'
 #'@param user Account To Query
@@ -119,43 +175,75 @@ getDelegation <- function(user="eroche"){
 #' getTransactions("eroche", 100)
 #'
 #' @export
-getTransactions <- function(user="eroche",n=100){
-  results <- get_account_history(user, -1, n)
 
 
-  n = min(length(results), n)
 
-  data = data.frame(timestamp=rep("",1,n), operation=rep("",1,n),delegation.delegator=rep("",1,n),delegation.delegatee=rep("",1,n),vesting_shares=rep("",1,n), stringsAsFactors = F)
+getTransactions <- function(user,n=1000000){
+  #n is maximum number of transactions
 
-  for(i in 1:n){
-    data[i,"timestamp"] <- results[[i]][[2]]$timestamp
-    data[i,"operation"] <- results[[i]][[2]]$op[[1]]
-    tryCatch({
-    data[i,"delegation.delegator"] <- results[[i]][[2]]$op[[2]]$delegator
-    data[i,"delegation.delegatee"] <- results[[i]][[2]]$op[[2]]$delegatee
-    data[i,"vesting_shares"] <- results[[i]][[2]]$op[[2]]$vesting_shares
-    data[i,"SP"] <- vests.formatter(data[i,"vesting_shares"])
-    },error=function(e){})
+  loop=TRUE
+  data = data.table(timestamp=character(n),
+                    operation=character(n),
+                    delegation.delegator=character(n),
+                    delegation.delegatee=character(n),
+                    vesting_shares=character(n), stringsAsFactors = F)
+
+
+  if(n < 1000){
+    x <- n-1
+    y<- n-1
+    print(paste(x,y))
+    results <- get_account_history(user, x, y)
+    for(j in 1:n){
+      tryCatch({
+        set(data,j,"timestamp",results[[j]][[2]]$timestamp)
+        set(data,j,"operation",results[[j]][[2]]$op[[1]])
+      }, error=function(e){})
+      tryCatch({
+        set(data,j,"delegation.delegator",results[[j]][[2]]$op[[2]]$delegator)
+        set(data,j,"delegation.delegatee",results[[j]][[2]]$op[[2]]$delegatee)
+        set(data,j,"vesting_shares",results[[j]][[2]]$op[[2]]$vesting_shares)
+        set(data,j,"SP",vests.formatter(data[i*1000+j,"vesting_shares"]))
+      },error=function(e){})
+    }
+  }
+
+  if(n >=1000){
+    i=0
+  while (loop) {
+
+    print(i)
+    x <- 1000*i+999
+    y <- 999
+    print(paste(x,y))
+
+    results <- get_account_history(user, x, y)
+
+    for(j in 1:1000){
+      tryCatch({
+        set(data,i*1000+j,"timestamp",results[[j]][[2]]$timestamp)
+        set(data,i*1000+j,"operation",results[[j]][[2]]$op[[1]])
+        }, error=function(e){})
+        tryCatch({
+        set(data,i*1000+j,"delegation.delegator",results[[j]][[2]]$op[[2]]$delegator)
+        set(data,i*1000+j,"delegation.delegatee",results[[j]][[2]]$op[[2]]$delegatee)
+        set(data,i*1000+j,"vesting_shares",results[[j]][[2]]$op[[2]]$vesting_shares)
+        set(data,i*1000+j,"SP",vests.formatter(data[i*1000+j,"vesting_shares"]))
+      },error=function(e){})
+    }
+    tmp <- data[data$timestamp!=""]
+    if(sum(duplicated(tmp))>1000){
+      loop=FALSE}
+    i = i +1
 
   }
 
-  ##Convert the Raw Steem data to a data.table
- # results <- data.frame(do.call(rbind, results))
+  }
 
- # delegator <- unlist(results$delegator)
-#  delegatee <- unlist(results$delegatee)
-#  vests <- unlist(results$vesting_shares)
-#  SP <- vests.formatter(vests)
-#  date <- as.Date(substr(results$min_delegation_time,1,10))
-#  if(length(vests)>0){
-#    results <- data.table(delegator=delegator, delegatee=delegatee, vests = vests, SP=SP, date=date, stringsAsFactors=F)}
-#  else{
-#    return(NULL)
-#  }
-  return(data.table(data))
+  data <- data[!duplicated(data$timestamp)]
+
+return(data)
 }
-
-
 
 #' getBlog
 #'
@@ -265,8 +353,8 @@ getSteemProperties <- function(){
 #'
 #' @export
 getAccount <- function(username){
-  data <- get_accounts(username)
-  data <- cleanAccounts(data)
+  data <- get_account(username)
+  data <- cleanAccount(data)
   return(data)
 }
 
@@ -299,6 +387,17 @@ get_account_votes <- function(user="eroche"){
 #Get Posts filtered by a specific tag
 get_discussions_by_created <- function(tag="steem", limit=100){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_discussions_by_created", "params":[{"tag":"',tag,'","limit":',limit,'}], "id":1}')
+
+  r <- POST("https://api.steemit.com", body = query)
+  data <- content(r, "parsed", "application/json")
+  return(data$result)
+
+}
+
+
+#Get Trending Posts
+get_discussions_by_trending <- function(tag="", limit=100){
+  query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_discussions_by_trending", "params":[{"tag":"',tag,'","limit":',limit,'}], "id":1}')
 
   r <- POST("https://api.steemit.com", body = query)
   data <- content(r, "parsed", "application/json")
@@ -369,7 +468,7 @@ get_follow_count <- function(user){
 #Get details of a users account
 ## The Steem API function allows multiple accounts to be returned. We are ignoring this for now.
 
-get_accounts <- function(user){
+get_account <- function(user){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_accounts", "params":[["', user ,'"]], "id":1}')
   r <- httr::POST("https://api.steemit.com", body = query)
   data <- httr::content(r, "parsed", "application/json")
@@ -394,6 +493,16 @@ get_blog_authors <- function(user){
 
 get_content <- function(user, permlink){
   query <- paste0('{"jsonrpc":"2.0", "method":"tags_api.get_discussion", "params":{"author":"',user,'", "permlink":"',permlink,'"}, "id":1}')
+  r <- httr::POST("https://api.steemit.com", body = query)
+  data <- httr::content(r, "parsed", "application/json")
+  return(data$result)
+}
+
+
+#Get the replies of a specific post
+
+get_content_replies <- function(user, permlink){
+  query <- paste0('{"jsonrpc":"2.0", "method":"tags_api.get_content_replies", "params":{"author":"',user,'", "permlink":"',permlink,'"}, "id":1}')
   r <- httr::POST("https://api.steemit.com", body = query)
   data <- httr::content(r, "parsed", "application/json")
   return(data$result)
@@ -590,7 +699,7 @@ vests.formatter <- function(x){
 }
 
 ##Clean accounts data, only keep key stuff
-cleanAccounts <- function(data){
+cleanAccount <- function(data){
 
   profile_image=""
   profile_website=""
@@ -617,6 +726,7 @@ cleanAccounts <- function(data){
 
   data <- data.table(created=as.POSIXct(data$created, format="%Y-%m-%dT%H:%M:%S"),
                      rep=reputation.formatter(data$reputation),
+                     post_count=data$post_count,
                      balance=as.numeric(gsub("STEEM", "", data$balance)),
                      savings=as.numeric(gsub("STEEM", "", data$savings_balance)),
                      vesting=vests.formatter( data$vesting_shares),
