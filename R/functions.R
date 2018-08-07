@@ -160,6 +160,9 @@ getReplies <- function(user, permlink){
 
    data.table::data.table(comment.authors=unlist(lapply(1:comments, function(x) results[1]$discussions[[x]]$author)))},error=function(e){
      data.table::data.table(comment.authors="")})
+  comments <- length(results[1]$discussions)
+
+  unlist(lapply(1:comments, function(x) results[1]$discussions[[x]]$author))
 
 }
 
@@ -244,6 +247,9 @@ getTransactions <- function(user,n=1000000){
 
 return(data)
 }
+
+
+
 
 #' getBlog
 #'
