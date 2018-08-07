@@ -160,6 +160,9 @@ getReplies <- function(user, permlink){
 
    data.table::data.table(comment.authors=unlist(lapply(1:comments, function(x) results[1]$discussions[[x]]$author)))},error=function(e){
      data.table::data.table(comment.authors="")})
+  comments <- length(results[1]$discussions)
+
+  unlist(lapply(1:comments, function(x) results[1]$discussions[[x]]$author))
 
 }
 
@@ -167,9 +170,11 @@ getReplies <- function(user, permlink){
 
 #' getTransactions
 #'
-#'@param user Account To Query
+#' @param user Account To Query
 #'
-#' @return The Last n number of transactions on an account
+#' @param n Number of Transactions since beginnning of account history
+#'
+#' @return The First n of transactions on an account
 #'
 #' @examples
 #' getTransactions("eroche", 100)
@@ -178,72 +183,100 @@ getReplies <- function(user, permlink){
 
 
 
-getTransactions <- function(user,n=1000000){
-  #n is maximum number of transactions
+getTransactions <- function(user,n){
+  #n is the number of transactions since the beginning of account history
+
+  ## Get the total number of transactions for the account
+  no_transactions <- get_account_history(user, -1,0)[[1]][[1]]+1
+
+  ##Default to return all transactions
+
+  ## Start is the transaction number to start counting back from (i.e. the last one)
+  if(missing(n)){
+    ##Default to return all transactions
+    start <- no_transactions
+  }
+  else{
+    ##Return n transactions counting forward from the account creation date
+    start = min(n, no_transactions)
+  }
+
+  n = start
 
   loop=TRUE
   data = data.table(timestamp=character(n),
                     operation=character(n),
+                    permlink=character(n),
+                    author=character(n),
+                    parent_author=character(n),
+                    weight=character(n),
+                    title=character(n),
+                    body=character(n),
                     delegation.delegator=character(n),
                     delegation.delegatee=character(n),
                     vesting_shares=character(n), stringsAsFactors = F)
 
 
-  if(n < 1000){
-    x <- n-1
-    y<- n-1
-    print(paste(x,y))
-    results <- get_account_history(user, x, y)
-    for(j in 1:n){
+  breaks = 10000
+  if (n < breaks) {
+    breaks = n
+  }
+  n_start = start-1
+  n_breaks = breaks -1
+  i=1
+  while (loop==TRUE) {
+  results <- get_account_history(user, n_start, n_breaks)
+  res_len <- length(results)
+  for( j in 1:res_len) {
       tryCatch({
-        set(data,j,"timestamp",results[[j]][[2]]$timestamp)
-        set(data,j,"operation",results[[j]][[2]]$op[[1]])
+        set(data,(i-1)*breaks+j,"timestamp",results[[j]][[2]]$timestamp)
+        set(data,(i-1)*breaks+j,"operation",results[[j]][[2]]$op[[1]])
       }, error=function(e){})
+
+    ## Delegation
       tryCatch({
-        set(data,j,"delegation.delegator",results[[j]][[2]]$op[[2]]$delegator)
-        set(data,j,"delegation.delegatee",results[[j]][[2]]$op[[2]]$delegatee)
-        set(data,j,"vesting_shares",results[[j]][[2]]$op[[2]]$vesting_shares)
-        set(data,j,"SP",vests.formatter(data[i*1000+j,"vesting_shares"]))
+        set(data,(i-1)*breaks+j,"delegation.delegator",results[[j]][[2]]$op[[2]]$delegator)
+        set(data,(i-1)*breaks+j,"delegation.delegatee",results[[j]][[2]]$op[[2]]$delegatee)
+        set(data,(i-1)*breaks+j,"vesting_shares",results[[j]][[2]]$op[[2]]$vesting_shares)
       },error=function(e){})
+
+    ## Comments / Posts
+    tryCatch({
+      set(data,(i-1)*breaks+j,"author",results[[j]][[2]]$op[[2]]$author)
+      set(data,(i-1)*breaks+j,"parent_author",results[[j]][[2]]$op[[2]]$parent_author)
+      set(data,(i-1)*breaks+j,"permlink",results[[j]][[2]]$op[[2]]$permlink)
+      set(data,(i-1)*breaks+j,"title",results[[j]][[2]]$op[[2]]$title)
+      set(data,(i-1)*breaks+j,"body",results[[j]][[2]]$op[[2]]$body)
+    },error=function(e){})
+
+    ## Votes
+    tryCatch({
+      set(data,(i-1)*breaks+j,"author",results[[j]][[2]]$op[[2]]$author)
+      set(data,(i-1)*breaks+j,"permlink",results[[j]][[2]]$op[[2]]$permlink)
+      set(data,(i-1)*breaks+j,"weight",results[[j]][[2]]$op[[2]]$weight)
+    },error=function(e){})
+
+
+    if(results[[j]][[2]]$op[[1]]=="account_create"){
+      loop <- FALSE
     }
   }
 
-  if(n >=1000){
-    i=0
-  while (loop) {
-
-    print(i)
-    x <- 1000*i+999
-    y <- 999
-    print(paste(x,y))
-
-    results <- get_account_history(user, x, y)
-
-    for(j in 1:1000){
-      tryCatch({
-        set(data,i*1000+j,"timestamp",results[[j]][[2]]$timestamp)
-        set(data,i*1000+j,"operation",results[[j]][[2]]$op[[1]])
-        }, error=function(e){})
-        tryCatch({
-        set(data,i*1000+j,"delegation.delegator",results[[j]][[2]]$op[[2]]$delegator)
-        set(data,i*1000+j,"delegation.delegatee",results[[j]][[2]]$op[[2]]$delegatee)
-        set(data,i*1000+j,"vesting_shares",results[[j]][[2]]$op[[2]]$vesting_shares)
-        set(data,i*1000+j,"SP",vests.formatter(data[i*1000+j,"vesting_shares"]))
-      },error=function(e){})
-    }
-    tmp <- data[data$timestamp!=""]
-    if(sum(duplicated(tmp))>1000){
-      loop=FALSE}
-    i = i +1
+  n_start = max(n_start - breaks,0)
+  if (n_start < n_breaks) {
+    n_breaks <- n_start
+  }
+  i = i+1
 
   }
 
-  }
+  data <- data[timestamp != ""][order(timestamp)]
 
-  data <- data[!duplicated(data$timestamp)]
-
-return(data)
+  return(data)
 }
+
+
+
 
 #' getBlog
 #'
