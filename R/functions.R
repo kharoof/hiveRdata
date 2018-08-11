@@ -204,7 +204,7 @@ getTransactions <- function(user,n){
   n = start
 
   loop=TRUE
-  data = data.table(timestamp=character(n),
+  data = data.table::data.table(timestamp=character(n),
                     operation=character(n),
                     permlink=character(n),
                     author=character(n),
@@ -274,7 +274,6 @@ getTransactions <- function(user,n){
 
   return(data)
 }
-
 
 
 
