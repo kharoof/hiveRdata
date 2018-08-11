@@ -277,7 +277,6 @@ getTransactions <- function(user,n){
 
 
 
-
 #' getBlog
 #'
 #' Get all main posts from a users blog (excluding Resteems)
