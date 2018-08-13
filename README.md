@@ -1,9 +1,13 @@
-![Steem Analytics](https://i.imgur.com/qUJoj4y.jpg)
-
 # steemRdata
-SteemRdata is n R package that is part of the SteemAnalytics Suite of Applications for analysing data from the Steem Blockchain.
 
 steemRdata is an R package to retrieve data from the Steem blockchain.
+
+![Steem Analytics](https://i.imgur.com/qUJoj4y.jpg)
+
+
+steemRdata is part of the SteemAnalytics Suite of Applications for analysing data from the Steem Blockchain.
+
+
 
 License: GPL-3
 
