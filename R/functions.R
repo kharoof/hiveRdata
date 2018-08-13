@@ -15,8 +15,11 @@
 #' getPost("eroche")
 #'
 #' @export
-getPost <- function(username, permlink){
-  results <- get_content(username, permlink)
+getPost <- function(username, permlink,node){
+  if(missing(node)){
+    node = "https://api.steemit.com"
+  }
+  results <- get_content(username, permlink,node)
 
   ##Convert the Raw Steem data to a data.table and add a field with the number of images
   results <- results
@@ -38,8 +41,11 @@ getPost <- function(username, permlink){
 #' getWitnesses(20) Get Top 20 Witnesses
 #'
 #' @export
-getWitnesses <- function(limit=1000){
-  results <- get_witnesses_by_vote(limit)
+getWitnesses <- function(limit=1000, node){
+  if(missing(node)){
+    node = "https://api.steemit.com"
+  }
+  results <- get_witnesses_by_vote(limit, node)
 
   ##Convert the Raw Steem data to a data.table and add a field with the number of images
   results <- data.frame(do.call(rbind, results))
@@ -69,8 +75,11 @@ getWitnesses <- function(limit=1000){
 #' getTrending(20) Get Top 10 Trending Posts
 #'
 #' @export
-getTrending <- function(tag="",limit=100){
-  results <- get_discussions_by_trending(tag,limit)
+getTrending <- function(tag="",limit=100, node){
+  if(missing(node)){
+    node = "https://api.steemit.com"
+  }
+  results <- get_discussions_by_trending(tag,limit, node)
 
   ##Convert the Raw Steem data to a data.table and add a field with the number of images
   results <- data.frame(do.call(rbind, results))
@@ -96,8 +105,11 @@ getTrending <- function(tag="",limit=100){
 #' getAccountVotes("eroche")
 #'
 #' @export
-getAccountVotes <- function(user="eroche"){
-  results <- get_account_votes(user)
+getAccountVotes <- function(user="eroche", node){
+  if(missing(node)){
+    node = "https://api.steemit.com"
+  }
+  results <- get_account_votes(user, node)
 
   ##Convert the Raw Steem data to a data.table
   results <- data.frame(do.call(rbind, results))
@@ -122,8 +134,11 @@ getAccountVotes <- function(user="eroche"){
 #' getDelegation("eroche")
 #'
 #' @export
-getDelegation <- function(user="eroche"){
-  results <- get_vesting_delegations(user)
+getDelegation <- function(user="eroche", node){
+  if(missing(node)){
+    node = "https://api.steemit.com"
+  }
+  results <- get_vesting_delegations(user, node)
 
   ##Convert the Raw Steem data to a data.table
   results <- data.frame(do.call(rbind, results))
@@ -153,8 +168,11 @@ getDelegation <- function(user="eroche"){
 #' getReplies("eroche", "data-wrangling-with-r")
 #'
 #' @export
-getReplies <- function(user, permlink){
-  results <- get_content_replies(user, permlink)
+getReplies <- function(user, permlink, node){
+  if(missing(node)){
+    node = "https://api.steemit.com"
+  }
+  results <- get_content_replies(user, permlink, node)
 
   tryCatch({comments <- length(results[1]$discussions)
 
@@ -183,11 +201,13 @@ getReplies <- function(user, permlink){
 
 
 
-getTransactions <- function(user,n){
+getTransactions <- function(user,n, node){
   #n is the number of transactions since the beginning of account history
-
+  if(missing(node)){
+    node = "https://api.steemit.com"
+  }
   ## Get the total number of transactions for the account
-  no_transactions <- get_account_history(user, -1,0)[[1]][[1]]+1
+  no_transactions <- get_account_history(user, -1,0, node)[[1]][[1]]+1
 
   ##Default to return all transactions
 
@@ -225,7 +245,7 @@ getTransactions <- function(user,n){
   n_breaks = breaks -1
   i=1
   while (loop==TRUE) {
-  results <- get_account_history(user, n_start, n_breaks)
+  results <- get_account_history(user, n_start, n_breaks, node)
   res_len <- length(results)
   for( j in 1:res_len) {
       tryCatch({
@@ -289,17 +309,20 @@ getTransactions <- function(user,n){
 #' getBlog("eroche")
 #'
 #' @export
-getBlog <- function(username){
+getBlog <- function(username, node){
+  if(missing(node)){
+    node = "https://api.steemit.com"
+  }
   ##First Call to Retrieve Blogs Limits 100 Posts
   permlink <- ""
-  results <- get_discussions_by_author_before_date(tolower(username), permlink)
+  results <- get_discussions_by_author_before_date(tolower(username), permlink, node)
   count <- length(results)
 
   ##Start at last permlink of Blog and get the next 100 posts. Loop until less than 100 are retrieved
   while (count == 100) {
     ##Add in logic here to skip calls if not finding any more results
     permlink <- results[[length(results)]]$permlink
-    tmpresults <- get_discussions_by_author_before_date(tolower(username), permlink)
+    tmpresults <- get_discussions_by_author_before_date(tolower(username), permlink, node)
     count <- length(tmpresults)
     results <- c(results,tmpresults)
   }
@@ -324,8 +347,11 @@ getBlog <- function(username){
 #' getPostsByTag("letseat", 1)
 #'
 #' @export
-getPostsByTag <- function(tag="steem", limit=1){
-  results <- get_discussions_by_created(tag, limit)
+getPostsByTag <- function(tag="steem", limit=1, node){
+  if(missing(node)){
+    node = "https://api.steemit.com"
+  }
+  results <- get_discussions_by_created(tag, limit, node)
   count <- length(results)
 
 
@@ -348,8 +374,11 @@ getPostsByTag <- function(tag="steem", limit=1){
 #' accountCount()
 #'
 #' @export
-accountCount <- function(){
-  data <- get_account_count()
+accountCount <- function(node){
+  if(missing(node)){
+    node = "https://api.steemit.com"
+  }
+  data <- get_account_count(node)
   paste("Number of Accounts : ", data$result)
 }
 
@@ -365,8 +394,11 @@ accountCount <- function(){
 #' getSteemProperties()
 #'
 #' @export
-getSteemProperties <- function(){
-  data <- get_dynamic_global_properties()
+getSteemProperties <- function(node){
+  if(missing(node)){
+    node = "https://api.steemit.com"
+  }
+  data <- get_dynamic_global_properties(node)
   data <- cleanGlobalProperties(data$result)
   return(data)
 }
@@ -384,8 +416,11 @@ getSteemProperties <- function(){
 #' getAccount()
 #'
 #' @export
-getAccount <- function(username){
-  data <- get_account(username)
+getAccount <- function(username, node){
+  if(missing(node)){
+    node = "https://api.steemit.com"
+  }
+  data <- get_account(username, node)
   data <- cleanAccount(data)
   return(data)
 }
@@ -395,10 +430,10 @@ getAccount <- function(username){
 # These functions will be wrappers for the steem api calls
 
 #Get Delegations for an account
-get_vesting_delegations <- function(user="eroche"){
+get_vesting_delegations <- function(user="eroche", node){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_vesting_delegations", "params":["',user,'",null,1000], "id":1}')
 
-  r <- POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- content(r, "parsed", "application/json")
   return(data$result)
 
@@ -406,10 +441,10 @@ get_vesting_delegations <- function(user="eroche"){
 
 
 #Get Votes by an Account
-get_account_votes <- function(user="eroche"){
+get_account_votes <- function(user="eroche", node){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_account_votes", "params":["',user,'"], "id":1}')
 
-  r <- POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- content(r, "parsed", "application/json")
   return(data$result)
 
@@ -417,10 +452,10 @@ get_account_votes <- function(user="eroche"){
 
 
 #Get Posts filtered by a specific tag
-get_discussions_by_created <- function(tag="steem", limit=100){
+get_discussions_by_created <- function(tag="steem", limit=100, node){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_discussions_by_created", "params":[{"tag":"',tag,'","limit":',limit,'}], "id":1}')
 
-  r <- POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- content(r, "parsed", "application/json")
   return(data$result)
 
@@ -428,10 +463,10 @@ get_discussions_by_created <- function(tag="steem", limit=100){
 
 
 #Get Trending Posts
-get_discussions_by_trending <- function(tag="", limit=100){
+get_discussions_by_trending <- function(tag="", limit=100, node){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_discussions_by_trending", "params":[{"tag":"',tag,'","limit":',limit,'}], "id":1}')
 
-  r <- POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- content(r, "parsed", "application/json")
   return(data$result)
 
@@ -439,11 +474,11 @@ get_discussions_by_trending <- function(tag="", limit=100){
 
 
 #Get the posts from a user profile
-get_discussions_by_author_before_date <- function(username, permlink){
+get_discussions_by_author_before_date <- function(username, permlink, node){
   link = paste0(',"start_permlink":"',permlink,'"')
   query <- paste0('{"jsonrpc":"2.0", "method":"tags_api.get_discussions_by_author_before_date", "params":{"author":"',username,'","limit":100', link ,'}, "id":1}')
 
-  r <- POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- content(r, "parsed", "application/json")
   discussions <- data$result$discussions
   return(discussions)
@@ -451,9 +486,9 @@ get_discussions_by_author_before_date <- function(username, permlink){
 }
 
 # Get the top Steem Witnesses by Vote
-get_witnesses_by_vote <- function(limit=1000){
+get_witnesses_by_vote <- function(limit=1000, node){
   query <- paste('{"jsonrpc":"2.0", "method":"condenser_api.get_witnesses_by_vote", "params":[null,',limit,'], "id":1}')
-  r <- httr::POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- httr::content(r, "parsed", "application/json")
   return(data$result)
 }
@@ -462,26 +497,26 @@ get_witnesses_by_vote <- function(limit=1000){
 
 
 # Get the latest steem account count from the Steem API calls
-get_account_count <- function(){
+get_account_count <- function(node){
   query <- '{"jsonrpc":"2.0", "method":"condenser_api.get_account_count", "params":[], "id":1}'
-  r <- httr::POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- httr::content(r, "parsed", "application/json")
   return(data)
 }
 
 
 # Get the latest steem global properties from the Steem API calls
-get_dynamic_global_properties <- function(){
+get_dynamic_global_properties <- function(node){
   query <- '{"jsonrpc":"2.0", "method":"database_api.get_dynamic_global_properties", "id":1}'
-  r <- httr::POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- httr::content(r, "parsed", "application/json")
   return(data)
 }
 
 # Get the latest steem rewards fund from the Steem API calls
-get_rewards_fund <- function(){
+get_rewards_fund <- function(node){
   query <- '{"jsonrpc":"2.0", "method":"database_api.get_reward_funds", "id":1}'
-  r <- httr::POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- httr::content(r, "parsed", "application/json")
   paste(data$result)
 }
@@ -489,9 +524,9 @@ get_rewards_fund <- function(){
 
 #Get the latest number of follow count for the specified user using the Steem API calls
 
-get_follow_count <- function(user){
+get_follow_count <- function(user, node){
   query <- paste0('{"jsonrpc":"2.0", "method":"follow_api.get_follow_count", "params":{"account":"', user ,'"}, "id":1}')
-  r <- httr::POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- httr::content(r, "parsed", "application/json")
   print(paste("Number of Followers : ", data$result$follower_count))
   (paste("Number Following : ", data$result$following_count))
@@ -500,9 +535,9 @@ get_follow_count <- function(user){
 #Get details of a users account
 ## The Steem API function allows multiple accounts to be returned. We are ignoring this for now.
 
-get_account <- function(user){
+get_account <- function(user, node){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_accounts", "params":[["', user ,'"]], "id":1}')
-  r <- httr::POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- httr::content(r, "parsed", "application/json")
   data <- data$result[[1]]
   return(data)
@@ -511,9 +546,9 @@ get_account <- function(user){
 
 #Get the authors that have been reblogged by the selected user using the Steem API calls
 
-get_blog_authors <- function(user){
+get_blog_authors <- function(user, node){
   query <- paste0('{"jsonrpc":"2.0", "method":"follow_api.get_blog_authors", "params":{"blog_account":"', user ,'"}, "id":1}')
-  r <- httr::POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- httr::content(r, "parsed", "application/json")
   data <- data.table::data.table(do.call(rbind, data$result$blog_authors))
   data <- data.table::data.table(reblogged=unlist(data$author), count=unlist(data$count))
@@ -523,9 +558,9 @@ get_blog_authors <- function(user){
 
 #Get the details of a specific post
 
-get_content <- function(user, permlink){
+get_content <- function(user, permlink, node){
   query <- paste0('{"jsonrpc":"2.0", "method":"tags_api.get_discussion", "params":{"author":"',user,'", "permlink":"',permlink,'"}, "id":1}')
-  r <- httr::POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- httr::content(r, "parsed", "application/json")
   return(data$result)
 }
@@ -533,9 +568,9 @@ get_content <- function(user, permlink){
 
 #Get the replies of a specific post
 
-get_content_replies <- function(user, permlink){
+get_content_replies <- function(user, permlink, node){
   query <- paste0('{"jsonrpc":"2.0", "method":"tags_api.get_content_replies", "params":{"author":"',user,'", "permlink":"',permlink,'"}, "id":1}')
-  r <- httr::POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- httr::content(r, "parsed", "application/json")
   return(data$result)
 }
@@ -543,9 +578,9 @@ get_content_replies <- function(user, permlink){
 
 ## Get Account History
 
-get_account_history <- function(user, start, end) {
+get_account_history <- function(user, start, end, node) {
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_account_history", "params":["',user,'",',start,',',end,'], "id":1}')
-  r <- httr::POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- httr::content(r, "parsed", "application/json")
   return(data[[2]])
 }
@@ -553,9 +588,9 @@ get_account_history <- function(user, start, end) {
 
 ## Get Reblogged by for a post
 
-get_reblogged_by <- function(user, permlink) {
+get_reblogged_by <- function(user, permlink, node) {
   query <- paste0('{"jsonrpc":"2.0", "method":"follow_api.get_reblogged_by", "params":{"author":"',user,'","permlink":"',permlink,'"}, "id":1}')
-  r <- httr::POST("https://api.steemit.com", body = query)
+  r <- httr::POST(node, body = query)
   data <- httr::content(r, "parsed", "application/json")
   data <- unlist(data$result$accounts)
   return(data)
