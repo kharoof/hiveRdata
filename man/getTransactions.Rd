@@ -2,18 +2,20 @@
 % Please edit documentation in R/functions.R
 \name{getTransactions}
 \alias{getTransactions}
-\title{getTransactions}
+\title{Transactions made on an account}
 \usage{
-getTransactions(user = "eroche", n = 100)
+getTransactions(user, n, node)
 }
 \arguments{
 \item{user}{Account To Query}
+
+\item{n}{Number of Transactions since beginnning of account history}
 }
 \value{
-The Last n number of transactions on an account
+The First n of transactions on an account
 }
 \description{
-getTransactions
+This function may take some time to process depending on the size of the transaction history on an account
 }
 \examples{
 getTransactions("eroche", 100)

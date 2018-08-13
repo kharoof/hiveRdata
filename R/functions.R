@@ -1,18 +1,22 @@
 # steemR user Functions ----
 # These functions will be the main interface for users of the steemR package
 
-#' getPost
+#' Details of a Steem Post
 #'
-#' Get details of a post
+#' Get details of a post, specified by the unique link (username and permlink)
 #'
-#' @param username Username of Blog Author.
+#' @param username Username of Post Author.
 #'
-#' @param permlink Permlink of Blog Post
+#' @param permlink Permlink of Post
+#'
+#' @param node Optional Argument (Steem Node to Query)
 #'
 #' @return List with Details of Post
 #'
+#'
 #' @examples
-#' getPost("eroche")
+#' getPost("eroche", "time-series-with-r")
+#' getPost("eroche", "time-series-with-r", "https://api.steemit.com")
 #'
 #' @export
 getPost <- function(username, permlink,node){
@@ -28,9 +32,14 @@ getPost <- function(username, permlink,node){
 }
 
 
-#' getWitnesses
+
+#' Current Steem Witnesse and Rank
 #'
-#'@param limit Number of Witnesses to Return
+#' Not all witnesses returned with this function will be active.
+#'
+#' @param limit Number of Witnesses to Return
+#'
+#' @param node Optional Argument (Steem Node to Query)
 #'
 #' Get details of the witnesses
 #'
@@ -39,6 +48,7 @@ getPost <- function(username, permlink,node){
 #' @examples
 #' getWitnesses() Get first 1000 Witnesses
 #' getWitnesses(20) Get Top 20 Witnesses
+#' getWitnesses(20, node="https://api.steemit.com")
 #'
 #' @export
 getWitnesses <- function(limit=1000, node){
@@ -60,11 +70,13 @@ getWitnesses <- function(limit=1000, node){
   return(results)
 }
 
-#' getTrending
+#' Current Trending Posts
 #'
-#'@param tag Tag to Filter
+#' @param tag Tag to Filter
 #'
-#'@param limit Number of Posts to Return
+#' @param limit Number of Posts to Return
+#'
+#' @param node Optional Argument (Steem Node to Query)
 #'
 #' Get details of the Trending Posts
 #'
@@ -73,6 +85,7 @@ getWitnesses <- function(limit=1000, node){
 #' @examples
 #' getTrending() Get first 100 Trending Posts
 #' getTrending(20) Get Top 10 Trending Posts
+#' getTrending(20, node="https://api.steemit.com")
 #'
 #' @export
 getTrending <- function(tag="",limit=100, node){
@@ -95,14 +108,19 @@ getTrending <- function(tag="",limit=100, node){
   return(results)
 }
 
-#' getAccountVotes
+#' Votes made by an Account
 #'
-#'@param user Voting Account
+#' Get a list of all the votes made by an account
+#'
+#' @param user Account to query
+#'
+#' @param node Optional Argument (Steem Node to Query)
 #'
 #' @return Data Table with list of votes and what they voted on
 #'
 #' @examples
 #' getAccountVotes("eroche")
+#' getAccountVotes("eroche", node="https://api.steemit.com")
 #'
 #' @export
 getAccountVotes <- function(user="eroche", node){
@@ -124,11 +142,13 @@ getAccountVotes <- function(user="eroche", node){
   return(results)
 }
 
-#' getDelegation
+#' Delegations Made by an Account
 #'
-#'@param user Account To Query
+#' @param user Account To Query
 #'
 #' @return Data Table with list of delegations
+#'
+#' @param node Optional Argument (Steem Node to Query)
 #'
 #' @examples
 #' getDelegation("eroche")
@@ -156,13 +176,15 @@ getDelegation <- function(user="eroche", node){
   return(results[order(date)])
 }
 
-#' getReplies
+#' Replies Made to a Post
 #'
-#'@param user Account To Query
+#' @param user Account To Query
 #'
-#'@param permlink Account To Query
+#' @param permlink Permlink of post to query
 #'
-#' @return Data Table with list of delegations
+#' @param node Optional Argument (Steem Node to Query)
+#'
+#' @return Data Table with list of replies made to specified post
 #'
 #' @examples
 #' getReplies("eroche", "data-wrangling-with-r")
@@ -185,8 +207,9 @@ getReplies <- function(user, permlink, node){
 }
 
 
-
-#' getTransactions
+#' Transactions made on an account
+#'
+#' This function may take some time to process depending on the size of the transaction history on an account
 #'
 #' @param user Account To Query
 #'
@@ -198,9 +221,6 @@ getReplies <- function(user, permlink, node){
 #' getTransactions("eroche", 100)
 #'
 #' @export
-
-
-
 getTransactions <- function(user,n, node){
   #n is the number of transactions since the beginning of account history
   if(missing(node)){
@@ -297,11 +317,13 @@ getTransactions <- function(user,n, node){
 
 
 
-#' getBlog
+#' Blog History
 #'
-#' Get all main posts from a users blog (excluding Resteems)
+#' Get all main posts from a users blog (excluding Resteems). This function may take some time to process depending on the size of the blog history on an account
 #'
 #' @param username Username of Blog Author.
+#'
+#' @param node Optional Argument (Steem Node to Query)
 #'
 #' @return Data.Table with Details of Blog Posts
 #'
@@ -333,13 +355,44 @@ getBlog <- function(username, node){
   return(results)
 }
 
-#' getPostsByTag
+#' Comment List
+#'
+#' Get a list of all the comments from a users blog. This function may take some time to process depending on the size of the transaction history on an account
+#'
+#' @param username Username of Comment Author.
+#'
+#' @param node Optional Argument (Steem Node to Query)
+#'
+#' @return Data.Table with Details of Comments Posts
+#'
+#' @examples
+#' getComments("eroche")
+#'
+#' @export
+getComments <- function(username, node){
+  if(missing(node)){
+    node = "https://api.steemit.com"
+  }
+  results <- getTransactions(user=username, node=node)
+
+  ## Transactions show all posts, edits and also all Comments from other authors
+  results <- results[operation=="comment"&author==username][!duplicated(permlink)][title==""][,.(timestamp, permlink, parent_author)]
+
+  results[,date:=as.Date(substr(timestamp, 1,10))]
+
+  return(results)
+}
+
+
+#' Recent Posts containing a particular tag.
 #'
 #' Get posts using a specific tag in Chronological order
 #'
 #' @param tag tag to search.
 #'
 #' @param limit number of items to return
+#'
+#' @param node Optional Argument (Steem Node to Query)
 #'
 #' @return Data.Table with Details of Posts
 #'
@@ -362,13 +415,15 @@ getPostsByTag <- function(tag="steem", limit=1, node){
 }
 
 
-#' accountCount
+#' Number of Accounts on Steem Blockchain
 #'
-#' Get the count of the accounts on the Steem Blockchain
+#' Get the count of the number of accounts on the Steem Blockchain
 #'
 #' @param NULL
 #'
-#' @return NULL
+#' @param node Optional Argument (Steem Node to Query)
+#'
+#' @return number of accounts
 #'
 #' @examples
 #' accountCount()
@@ -382,13 +437,15 @@ accountCount <- function(node){
   paste("Number of Accounts : ", data$result)
 }
 
-#' getSteemProperties()
+#' Steem Proporties
 #'
-#' Get the count of the accounts on the Steem Blockchain
+#' Get details about the latest state of the Steem Blockchain.
 #'
 #' @param NULL
 #'
-#' @return NULL
+#' @param node Optional Argument (Steem Node to Query)
+#'
+#' @return steem properties
 #'
 #' @examples
 #' getSteemProperties()
@@ -404,16 +461,18 @@ getSteemProperties <- function(node){
 }
 
 
-#' getAccount
+#' Account Details
 #'
 #' Get the details of a user account
 #'
 #' @param username
 #'
+#' @param node Optional Argument (Steem Node to Query)
+#'
 #' @return Account Details
 #'
 #' @examples
-#' getAccount()
+#' getAccount("eroche")
 #'
 #' @export
 getAccount <- function(username, node){

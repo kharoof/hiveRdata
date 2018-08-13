@@ -2,12 +2,14 @@
 % Please edit documentation in R/functions.R
 \name{getAccount}
 \alias{getAccount}
-\title{getAccount}
+\title{Account Details}
 \usage{
-getAccount(username)
+getAccount(username, node)
 }
 \arguments{
 \item{username}{}
+
+\item{node}{Optional Argument (Steem Node to Query)}
 }
 \value{
 Account Details
@@ -16,6 +18,6 @@ Account Details
 Get the details of a user account
 }
 \examples{
-getAccount()
+getAccount("eroche")
 
 }

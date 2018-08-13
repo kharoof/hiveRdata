@@ -2,15 +2,20 @@
 % Please edit documentation in R/functions.R
 \name{getSteemProperties}
 \alias{getSteemProperties}
-\title{getSteemProperties()}
+\title{Steem Proporties}
 \usage{
-getSteemProperties()
+getSteemProperties(node)
 }
 \arguments{
+\item{node}{Optional Argument (Steem Node to Query)}
+
 \item{NULL}{}
 }
+\value{
+steem properties
+}
 \description{
-Get the count of the accounts on the Steem Blockchain
+Get details about the latest state of the Steem Blockchain.
 }
 \examples{
 getSteemProperties()

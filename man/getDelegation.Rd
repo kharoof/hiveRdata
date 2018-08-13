@@ -2,18 +2,20 @@
 % Please edit documentation in R/functions.R
 \name{getDelegation}
 \alias{getDelegation}
-\title{getDelegation}
+\title{Delegations Made by an Account}
 \usage{
-getDelegation(user = "eroche")
+getDelegation(user = "eroche", node)
 }
 \arguments{
 \item{user}{Account To Query}
+
+\item{node}{Optional Argument (Steem Node to Query)}
 }
 \value{
 Data Table with list of delegations
 }
 \description{
-getDelegation
+Delegations Made by an Account
 }
 \examples{
 getDelegation("eroche")

@@ -2,12 +2,14 @@
 % Please edit documentation in R/functions.R
 \name{getWitnesses}
 \alias{getWitnesses}
-\title{getWitnesses}
+\title{Current Steem Witnesse and Rank}
 \usage{
-getWitnesses(limit = 1000)
+getWitnesses(limit = 1000, node)
 }
 \arguments{
-\item{limit}{Number of Witnesses to Return
+\item{limit}{Number of Witnesses to Return}
+
+\item{node}{Optional Argument (Steem Node to Query)
 
 Get details of the witnesses}
 }
@@ -15,10 +17,11 @@ Get details of the witnesses}
 List with Details of Witnesses
 }
 \description{
-getWitnesses
+Not all witnesses returned with this function will be active.
 }
 \examples{
 getWitnesses() Get first 1000 Witnesses
 getWitnesses(20) Get Top 20 Witnesses
+getWitnesses(20, node="https://api.steemit.com")
 
 }

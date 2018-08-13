@@ -2,22 +2,25 @@
 % Please edit documentation in R/functions.R
 \name{getPost}
 \alias{getPost}
-\title{getPost}
+\title{Details of a Steem Post}
 \usage{
-getPost(username, permlink)
+getPost(username, permlink, node)
 }
 \arguments{
-\item{username}{Username of Blog Author.}
+\item{username}{Username of Post Author.}
 
-\item{permlink}{Permlink of Blog Post}
+\item{permlink}{Permlink of Post}
+
+\item{node}{Optional Argument (Steem Node to Query)}
 }
 \value{
 List with Details of Post
 }
 \description{
-Get details of a post
+Get details of a post, specified by the unique link (username and permlink)
 }
 \examples{
-getPost("eroche")
+getPost("eroche", "time-series-with-r")
+getPost("eroche", "time-series-with-r", "https://api.steemit.com")
 
 }

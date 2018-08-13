@@ -2,20 +2,23 @@
 % Please edit documentation in R/functions.R
 \name{getAccountVotes}
 \alias{getAccountVotes}
-\title{getAccountVotes}
+\title{Votes made by an Account}
 \usage{
-getAccountVotes(user = "eroche")
+getAccountVotes(user = "eroche", node)
 }
 \arguments{
-\item{user}{Voting Account}
+\item{user}{Account to query}
+
+\item{node}{Optional Argument (Steem Node to Query)}
 }
 \value{
 Data Table with list of votes and what they voted on
 }
 \description{
-getAccountVotes
+Get a list of all the votes made by an account
 }
 \examples{
 getAccountVotes("eroche")
+getAccountVotes("eroche", node="https://api.steemit.com")
 
 }

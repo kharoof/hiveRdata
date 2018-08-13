@@ -2,15 +2,20 @@
 % Please edit documentation in R/functions.R
 \name{accountCount}
 \alias{accountCount}
-\title{accountCount}
+\title{Number of Accounts on Steem Blockchain}
 \usage{
-accountCount()
+accountCount(node)
 }
 \arguments{
+\item{node}{Optional Argument (Steem Node to Query)}
+
 \item{NULL}{}
 }
+\value{
+number of accounts
+}
 \description{
-Get the count of the accounts on the Steem Blockchain
+Get the count of the number of accounts on the Steem Blockchain
 }
 \examples{
 accountCount()
