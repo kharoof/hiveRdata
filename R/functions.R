@@ -1,6 +1,25 @@
 # steemR user Functions ----
 # These functions will be the main interface for users of the steemR package
 
+#' List of Steem RPC nodes
+#'
+#' The functions in steemRdata use public RPC nodes. This function returns a list of possible nodes which can be specified in the function calls.
+#'
+#' @param NULL
+#'
+#' @return List of nodes
+#'
+#'
+#' @examples
+#' getNodes()
+#' @export
+getNodes <- function(){
+  nodes <- htmltab::htmltab("https://www.steem.center/index.php?title=Public_Websocket_Servers",1)
+  data.table(node=paste0("https://",nodes$Server), status=nodes$Status)
+}
+
+
+
 #' Details of a Steem Post
 #'
 #' Get details of a post, specified by the unique link (username and permlink)
@@ -493,7 +512,7 @@ get_vesting_delegations <- function(user="eroche", node){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_vesting_delegations", "params":["',user,'",null,1000], "id":1}')
 
   r <- httr::POST(node, body = query)
-  data <- content(r, "parsed", "application/json")
+  data <- httr::content(r, "parsed", "application/json")
   return(data$result)
 
 }
@@ -504,7 +523,7 @@ get_account_votes <- function(user="eroche", node){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_account_votes", "params":["',user,'"], "id":1}')
 
   r <- httr::POST(node, body = query)
-  data <- content(r, "parsed", "application/json")
+  data <- httr::content(r, "parsed", "application/json")
   return(data$result)
 
 }
@@ -515,7 +534,7 @@ get_discussions_by_created <- function(tag="steem", limit=100, node){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_discussions_by_created", "params":[{"tag":"',tag,'","limit":',limit,'}], "id":1}')
 
   r <- httr::POST(node, body = query)
-  data <- content(r, "parsed", "application/json")
+  data <- httr::content(r, "parsed", "application/json")
   return(data$result)
 
 }
@@ -526,7 +545,7 @@ get_discussions_by_trending <- function(tag="", limit=100, node){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_discussions_by_trending", "params":[{"tag":"',tag,'","limit":',limit,'}], "id":1}')
 
   r <- httr::POST(node, body = query)
-  data <- content(r, "parsed", "application/json")
+  data <- httr::content(r, "parsed", "application/json")
   return(data$result)
 
 }
@@ -538,7 +557,7 @@ get_discussions_by_author_before_date <- function(username, permlink, node){
   query <- paste0('{"jsonrpc":"2.0", "method":"tags_api.get_discussions_by_author_before_date", "params":{"author":"',username,'","limit":100', link ,'}, "id":1}')
 
   r <- httr::POST(node, body = query)
-  data <- content(r, "parsed", "application/json")
+  data <- httr::content(r, "parsed", "application/json")
   discussions <- data$result$discussions
   return(discussions)
 
