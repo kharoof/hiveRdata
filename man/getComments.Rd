@@ -9,7 +9,7 @@ getComments(username, node)
 \arguments{
 \item{username}{Username of Comment Author.}
 
-\item{node}{Optional Argument (Steem Node to Query)}
+\item{node}{Optional Argument (Hive Node to Query)}
 }
 \value{
 Data.Table with Details of Comments Posts

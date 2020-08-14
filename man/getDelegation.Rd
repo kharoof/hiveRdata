@@ -9,7 +9,7 @@ getDelegation(user = "eroche", node)
 \arguments{
 \item{user}{Account To Query}
 
-\item{node}{Optional Argument (Steem Node to Query)}
+\item{node}{Optional Argument (Hive Node to Query)}
 }
 \value{
 Data Table with list of delegations

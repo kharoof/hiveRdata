@@ -11,7 +11,7 @@ getReplies(user, permlink, node)
 
 \item{permlink}{Permlink of post to query}
 
-\item{node}{Optional Argument (Steem Node to Query)}
+\item{node}{Optional Argument (Hive Node to Query)}
 }
 \value{
 Data Table with list of replies made to specified post

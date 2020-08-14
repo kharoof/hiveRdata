@@ -2,7 +2,7 @@
 % Please edit documentation in R/functions.R
 \name{getNodes}
 \alias{getNodes}
-\title{List of Steem RPC nodes}
+\title{List of Hive RPC nodes}
 \usage{
 getNodes()
 }
@@ -13,7 +13,7 @@ getNodes()
 List of nodes
 }
 \description{
-The functions in steemRdata use public RPC nodes. This function returns a list of possible nodes which can be specified in the function calls.
+The functions in hiveRdata use public RPC nodes. This function returns a list of possible nodes which can be specified in the function calls.
 }
 \examples{
 getNodes()

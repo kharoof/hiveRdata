@@ -2,14 +2,14 @@
 % Please edit documentation in R/functions.R
 \name{getAccountVotes}
 \alias{getAccountVotes}
-\title{Votes made by an Account}
+\title{Votes made by an Account (Depreciated)}
 \usage{
 getAccountVotes(user = "eroche", node)
 }
 \arguments{
 \item{user}{Account to query}
 
-\item{node}{Optional Argument (Steem Node to Query)}
+\item{node}{Optional Argument (Hive Node to Query)}
 }
 \value{
 Data Table with list of votes and what they voted on
@@ -19,6 +19,6 @@ Get a list of all the votes made by an account
 }
 \examples{
 getAccountVotes("eroche")
-getAccountVotes("eroche", node="https://api.steemit.com")
+getAccountVotes("eroche", node="https://api.openhive.network")
 
 }

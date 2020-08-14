@@ -11,7 +11,7 @@ getTrending(tag = "", limit = 100, node)
 
 \item{limit}{Number of Posts to Return}
 
-\item{node}{Optional Argument (Steem Node to Query)
+\item{node}{Optional Argument (Hive Node to Query)
 
 Get details of the Trending Posts}
 }
@@ -24,6 +24,6 @@ Current Trending Posts
 \examples{
 getTrending() Get first 100 Trending Posts
 getTrending(20) Get Top 10 Trending Posts
-getTrending(20, node="https://api.steemit.com")
+getTrending(20, node="https://api.openhive.network")
 
 }

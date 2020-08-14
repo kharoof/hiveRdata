@@ -2,14 +2,14 @@
 % Please edit documentation in R/functions.R
 \name{getWitnesses}
 \alias{getWitnesses}
-\title{Current Steem Witnesse and Rank}
+\title{Current Hive Witnesse and Rank}
 \usage{
 getWitnesses(limit = 1000, node)
 }
 \arguments{
 \item{limit}{Number of Witnesses to Return}
 
-\item{node}{Optional Argument (Steem Node to Query)
+\item{node}{Optional Argument (Hive Node to Query)
 
 Get details of the witnesses}
 }
@@ -22,6 +22,6 @@ Not all witnesses returned with this function will be active.
 \examples{
 getWitnesses() Get first 1000 Witnesses
 getWitnesses(20) Get Top 20 Witnesses
-getWitnesses(20, node="https://api.steemit.com")
+getWitnesses(20, node="https://api.openhive.network")
 
 }

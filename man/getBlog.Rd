@@ -9,13 +9,13 @@ getBlog(username, node)
 \arguments{
 \item{username}{Username of Blog Author.}
 
-\item{node}{Optional Argument (Steem Node to Query)}
+\item{node}{Optional Argument (Hive Node to Query)}
 }
 \value{
 Data.Table with Details of Blog Posts
 }
 \description{
-Get all main posts from a users blog (excluding Resteems). This function may take some time to process depending on the size of the blog history on an account
+Get all main posts from a users blog (excluding reHives). This function may take some time to process depending on the size of the blog history on an account
 }
 \examples{
 getBlog("eroche")
