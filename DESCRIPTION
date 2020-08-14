@@ -2,7 +2,7 @@ Package: hiveRdata
 Type: Package
 Title: Download and Explore Data from the Hive Blockchain
 Version: 0.1.0
-Author: Edward Roche <https://steemit.com/@eroche>
+Author: Edward Roche <https://hive.blog/@eroche>
 Maintainer: Edward Roche <edderoiste@gmail.com>
 Description: Wrapper Functions to download and explore data from the Hive Blockchain via RPC calls (using the App Base API).
 License: GPL-3
@@ -12,7 +12,6 @@ RoxygenNote: 7.1.1
 Requires:
     dplyr,
     data.table,
-    ggplot2,
     scales,
     ggthemes,
     stringr,
