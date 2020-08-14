@@ -9,7 +9,7 @@ getAccount(username, node)
 \arguments{
 \item{username}{}
 
-\item{node}{Optional Argument (Steem Node to Query)}
+\item{node}{Optional Argument (Hive Node to Query)}
 }
 \value{
 Account Details

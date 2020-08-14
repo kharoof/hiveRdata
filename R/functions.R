@@ -1,9 +1,9 @@
-# steemR user Functions ----
-# These functions will be the main interface for users of the steemR package
+# hiveRdata user Functions ----
+# These functions will be the main interface for users of the HiveR package
 
-#' List of Steem RPC nodes
+#' List of Hive RPC nodes
 #'
-#' The functions in steemRdata use public RPC nodes. This function returns a list of possible nodes which can be specified in the function calls.
+#' The functions in hiveRdata use public RPC nodes. This function returns a list of possible nodes which can be specified in the function calls.
 #'
 #' @param NULL
 #'
@@ -14,13 +14,13 @@
 #' getNodes()
 #' @export
 getNodes <- function(){
-  nodes <- htmltab::htmltab("https://www.steem.center/index.php?title=Public_Websocket_Servers",1)
-  data.table(node=paste0("https://",nodes$Server), status=nodes$Status)
+  nodes <- htmltab::htmltab("https://developers.hive.io/quickstart/hive_full_nodes.html",1)
+  data.table::data.table(node=paste0("https://",nodes$URL), Owner=nodes$Owner)
 }
 
 
 
-#' Details of a Steem Post
+#' Details of a Hive Post
 #'
 #' Get details of a post, specified by the unique link (username and permlink)
 #'
@@ -28,37 +28,37 @@ getNodes <- function(){
 #'
 #' @param permlink Permlink of Post
 #'
-#' @param node Optional Argument (Steem Node to Query)
+#' @param node Optional Argument (Hive Node to Query)
 #'
 #' @return List with Details of Post
 #'
 #'
 #' @examples
 #' getPost("eroche", "time-series-with-r")
-#' getPost("eroche", "time-series-with-r", "https://api.steemit.com")
+#' getPost("eroche", "time-series-with-r", "https://api.openhive.network")
 #'
 #' @export
 getPost <- function(username, permlink,node){
   if(missing(node)){
-    node = "https://api.steemit.com"
+    node = "https://api.openhive.network"
   }
   results <- get_content(username, permlink,node)
 
-  ##Convert the Raw Steem data to a data.table and add a field with the number of images
+  ##Convert the Raw Hive data to a data.table and add a field with the number of images
   results <- results
-  results$image_count <- length(fromJSON(results$json_metadata)$image)
+  results$image_count <- length(rjson::fromJSON(results$json_metadata)$image)
   return(results)
 }
 
 
 
-#' Current Steem Witnesse and Rank
+#' Current Hive Witnesse and Rank
 #'
 #' Not all witnesses returned with this function will be active.
 #'
 #' @param limit Number of Witnesses to Return
 #'
-#' @param node Optional Argument (Steem Node to Query)
+#' @param node Optional Argument (Hive Node to Query)
 #'
 #' Get details of the witnesses
 #'
@@ -67,16 +67,16 @@ getPost <- function(username, permlink,node){
 #' @examples
 #' getWitnesses() Get first 1000 Witnesses
 #' getWitnesses(20) Get Top 20 Witnesses
-#' getWitnesses(20, node="https://api.steemit.com")
+#' getWitnesses(20, node="https://api.openhive.network")
 #'
 #' @export
 getWitnesses <- function(limit=1000, node){
   if(missing(node)){
-    node = "https://api.steemit.com"
+    node = "https://api.openhive.network"
   }
   results <- get_witnesses_by_vote(limit, node)
 
-  ##Convert the Raw Steem data to a data.table and add a field with the number of images
+  ##Convert the Raw Hive data to a data.table and add a field with the number of images
   results <- data.frame(do.call(rbind, results))
   owner <- unlist(results$owner)
   version <- unlist(results$running_version)
@@ -95,7 +95,7 @@ getWitnesses <- function(limit=1000, node){
 #'
 #' @param limit Number of Posts to Return
 #'
-#' @param node Optional Argument (Steem Node to Query)
+#' @param node Optional Argument (Hive Node to Query)
 #'
 #' Get details of the Trending Posts
 #'
@@ -104,16 +104,16 @@ getWitnesses <- function(limit=1000, node){
 #' @examples
 #' getTrending() Get first 100 Trending Posts
 #' getTrending(20) Get Top 10 Trending Posts
-#' getTrending(20, node="https://api.steemit.com")
+#' getTrending(20, node="https://api.openhive.network")
 #'
 #' @export
 getTrending <- function(tag="",limit=100, node){
   if(missing(node)){
-    node = "https://api.steemit.com"
+    node = "https://api.openhive.network"
   }
   results <- get_discussions_by_trending(tag,limit, node)
 
-  ##Convert the Raw Steem data to a data.table and add a field with the number of images
+  ##Convert the Raw Hive data to a data.table and add a field with the number of images
   results <- data.frame(do.call(rbind, results))
   author <- unlist(results$author)
   title <- unlist(results$title)
@@ -127,28 +127,28 @@ getTrending <- function(tag="",limit=100, node){
   return(results)
 }
 
-#' Votes made by an Account
+#' Votes made by an Account (Depreciated)
 #'
 #' Get a list of all the votes made by an account
 #'
 #' @param user Account to query
 #'
-#' @param node Optional Argument (Steem Node to Query)
+#' @param node Optional Argument (Hive Node to Query)
 #'
 #' @return Data Table with list of votes and what they voted on
 #'
 #' @examples
 #' getAccountVotes("eroche")
-#' getAccountVotes("eroche", node="https://api.steemit.com")
+#' getAccountVotes("eroche", node="https://api.openhive.network")
 #'
 #' @export
 getAccountVotes <- function(user="eroche", node){
   if(missing(node)){
-    node = "https://api.steemit.com"
+    node = "https://api.openhive.network"
   }
   results <- get_account_votes(user, node)
 
-  ##Convert the Raw Steem data to a data.table
+  ##Convert the Raw Hive data to a data.table
   results <- data.frame(do.call(rbind, results))
 
   permlink <- paste0("@",unlist(results$authorperm))
@@ -167,7 +167,7 @@ getAccountVotes <- function(user="eroche", node){
 #'
 #' @return Data Table with list of delegations
 #'
-#' @param node Optional Argument (Steem Node to Query)
+#' @param node Optional Argument (Hive Node to Query)
 #'
 #' @examples
 #' getDelegation("eroche")
@@ -175,20 +175,20 @@ getAccountVotes <- function(user="eroche", node){
 #' @export
 getDelegation <- function(user="eroche", node){
   if(missing(node)){
-    node = "https://api.steemit.com"
+    node = "https://api.openhive.network"
   }
   results <- get_vesting_delegations(user, node)
 
-  ##Convert the Raw Steem data to a data.table
+  ##Convert the Raw Hive data to a data.table
   results <- data.frame(do.call(rbind, results))
 
   delegator <- unlist(results$delegator)
   delegatee <- unlist(results$delegatee)
   vests <- unlist(results$vesting_shares)
-  SP <- vests.formatter(vests)
+  HP <- vests.formatter(vests)
   date <- as.Date(substr(results$min_delegation_time,1,10))
   if(length(vests)>0){
-  results <- data.table(delegator=delegator, delegatee=delegatee, vests = vests, SP=SP, date=date, stringsAsFactors=F)}
+  results <- data.table(delegator=delegator, delegatee=delegatee, vests = vests, HP=HP, date=date, stringsAsFactors=F)}
   else{
     return(NULL)
   }
@@ -201,7 +201,7 @@ getDelegation <- function(user="eroche", node){
 #'
 #' @param permlink Permlink of post to query
 #'
-#' @param node Optional Argument (Steem Node to Query)
+#' @param node Optional Argument (Hive Node to Query)
 #'
 #' @return Data Table with list of replies made to specified post
 #'
@@ -211,7 +211,7 @@ getDelegation <- function(user="eroche", node){
 #' @export
 getReplies <- function(user, permlink, node){
   if(missing(node)){
-    node = "https://api.steemit.com"
+    node = "https://api.openhive.network"
   }
   results <- get_content_replies(user, permlink, node)
 
@@ -229,10 +229,11 @@ getReplies <- function(user, permlink, node){
 #' Transactions made on an account
 #'
 #' This function may take some time to process depending on the size of the transaction history on an account
+#' Its timing out on large accounts
 #'
 #' @param user Account To Query
 #'
-#' @param n Number of Transactions since beginnning of account history
+#' @param n Number of Transactions to Return (Optional)
 #'
 #' @return The First n of transactions on an account
 #'
@@ -243,25 +244,23 @@ getReplies <- function(user, permlink, node){
 getTransactions <- function(user,n, node){
   #n is the number of transactions since the beginning of account history
   if(missing(node)){
-    node = "https://api.steemit.com"
+    node = "https://api.openhive.network"
   }
   ## Get the total number of transactions for the account
-  no_transactions <- get_account_history(user, -1,0, node)[[1]][[1]]+1
+  no_transactions <- strtoi(get_account_history(user, -1,0, node)[[1]][[1]])
 
   ##Default to return all transactions
-
-  ## Start is the transaction number to start counting back from (i.e. the last one)
+  ## Begin Looping back over account from latest transaction
   if(missing(n)){
     ##Default to return all transactions
     start <- no_transactions
   }
   else{
-    ##Return n transactions counting forward from the account creation date
+    ##Return n transactions or all whichever is higher
     start = min(n, no_transactions)
   }
 
   n = start
-
   loop=TRUE
   data = data.table::data.table(timestamp=character(n),
                     operation=character(n),
@@ -276,54 +275,71 @@ getTransactions <- function(user,n, node){
                     vesting_shares=character(n), stringsAsFactors = F)
 
 
-  breaks = 10000
-  if (n < breaks) {
-    breaks = n
+  #Some nodes are timing out, reduced limit to 5k to reduce the impact of this, and added in Catch for timeouts to retry below
+  #Parse Transactions in batches
+  batch = 1000
+
+  if (n < batch) {
+    batch = n
   }
-  n_start = start-1
-  n_breaks = breaks -1
+
+  n_start = start
+  n_batch = batch
   i=1
+
+
+
   while (loop==TRUE) {
-  results <- get_account_history(user, n_start, n_breaks, node)
+  results <- get_account_history(user, n_start, n_batch-1, node)
+
+  ##Catch Timeouts
+  while (typeof(results)=="double") {
+    results <- get_account_history(user, n_start, n_batch-1, node)
+  }
+
   res_len <- length(results)
   for( j in 1:res_len) {
       tryCatch({
-        set(data,(i-1)*breaks+j,"timestamp",results[[j]][[2]]$timestamp)
-        set(data,(i-1)*breaks+j,"operation",results[[j]][[2]]$op[[1]])
+        set(data,(i-1)*n_batch+j,"timestamp",results[[j]][[2]]$timestamp)
+        set(data,(i-1)*n_batch+j,"operation",results[[j]][[2]]$op[[1]])
       }, error=function(e){})
 
     ## Delegation
       tryCatch({
-        set(data,(i-1)*breaks+j,"delegation.delegator",results[[j]][[2]]$op[[2]]$delegator)
-        set(data,(i-1)*breaks+j,"delegation.delegatee",results[[j]][[2]]$op[[2]]$delegatee)
-        set(data,(i-1)*breaks+j,"vesting_shares",results[[j]][[2]]$op[[2]]$vesting_shares)
+        set(data,(i-1)*n_batch+j,"delegation.delegator",results[[j]][[2]]$op[[2]]$delegator)
+        set(data,(i-1)*n_batch+j,"delegation.delegatee",results[[j]][[2]]$op[[2]]$delegatee)
+        set(data,(i-1)*n_batch+j,"vesting_shares",results[[j]][[2]]$op[[2]]$vesting_shares)
       },error=function(e){})
 
     ## Comments / Posts
     tryCatch({
-      set(data,(i-1)*breaks+j,"author",results[[j]][[2]]$op[[2]]$author)
-      set(data,(i-1)*breaks+j,"parent_author",results[[j]][[2]]$op[[2]]$parent_author)
-      set(data,(i-1)*breaks+j,"permlink",results[[j]][[2]]$op[[2]]$permlink)
-      set(data,(i-1)*breaks+j,"title",results[[j]][[2]]$op[[2]]$title)
-      set(data,(i-1)*breaks+j,"body",results[[j]][[2]]$op[[2]]$body)
+      set(data,(i-1)*n_batch+j,"author",results[[j]][[2]]$op[[2]]$author)
+      set(data,(i-1)*n_batch+j,"parent_author",results[[j]][[2]]$op[[2]]$parent_author)
+      set(data,(i-1)*n_batch+j,"permlink",results[[j]][[2]]$op[[2]]$permlink)
+      set(data,(i-1)*n_batch+j,"title",results[[j]][[2]]$op[[2]]$title)
+      set(data,(i-1)*n_batch+j,"body",results[[j]][[2]]$op[[2]]$body)
     },error=function(e){})
 
     ## Votes
     tryCatch({
-      set(data,(i-1)*breaks+j,"author",results[[j]][[2]]$op[[2]]$author)
-      set(data,(i-1)*breaks+j,"permlink",results[[j]][[2]]$op[[2]]$permlink)
-      set(data,(i-1)*breaks+j,"weight",results[[j]][[2]]$op[[2]]$weight)
+      set(data,(i-1)*n_batch+j,"author",results[[j]][[2]]$op[[2]]$author)
+      set(data,(i-1)*n_batch+j,"permlink",results[[j]][[2]]$op[[2]]$permlink)
+      set(data,(i-1)*n_batch+j,"weight",results[[j]][[2]]$op[[2]]$weight)
     },error=function(e){})
 
 
     if(results[[j]][[2]]$op[[1]]=="account_create"){
       loop <- FALSE
     }
+    if(n_start==n_batch){
+      loop <- FALSE
+    }
   }
 
-  n_start = max(n_start - breaks,0)
-  if (n_start < n_breaks) {
-    n_breaks <- n_start
+  #Update Values for next loop
+  n_start = max(n_start - batch,0)
+  if (n_start < n_batch) {
+    n_batch <- n_start
   }
   i = i+1
 
@@ -338,11 +354,11 @@ getTransactions <- function(user,n, node){
 
 #' Blog History
 #'
-#' Get all main posts from a users blog (excluding Resteems). This function may take some time to process depending on the size of the blog history on an account
+#' Get all main posts from a users blog (excluding reHives). This function may take some time to process depending on the size of the blog history on an account
 #'
 #' @param username Username of Blog Author.
 #'
-#' @param node Optional Argument (Steem Node to Query)
+#' @param node Optional Argument (Hive Node to Query)
 #'
 #' @return Data.Table with Details of Blog Posts
 #'
@@ -352,7 +368,7 @@ getTransactions <- function(user,n, node){
 #' @export
 getBlog <- function(username, node){
   if(missing(node)){
-    node = "https://api.steemit.com"
+    node = "https://api.openhive.network"
   }
   ##First Call to Retrieve Blogs Limits 100 Posts
   permlink <- ""
@@ -368,7 +384,7 @@ getBlog <- function(username, node){
     results <- c(results,tmpresults)
   }
 
-  ##Convert the Raw Steem data to a cleaned data.table
+  ##Convert the Raw Hive data to a cleaned data.table
   results <- cleanData(results)
 
   return(results)
@@ -380,7 +396,7 @@ getBlog <- function(username, node){
 #'
 #' @param username Username of Comment Author.
 #'
-#' @param node Optional Argument (Steem Node to Query)
+#' @param node Optional Argument (Hive Node to Query)
 #'
 #' @return Data.Table with Details of Comments Posts
 #'
@@ -390,7 +406,7 @@ getBlog <- function(username, node){
 #' @export
 getComments <- function(username, node){
   if(missing(node)){
-    node = "https://api.steemit.com"
+    node = "https://api.openhive.network"
   }
   results <- getTransactions(user=username, node=node)
 
@@ -411,7 +427,7 @@ getComments <- function(username, node){
 #'
 #' @param limit number of items to return
 #'
-#' @param node Optional Argument (Steem Node to Query)
+#' @param node Optional Argument (Hive Node to Query)
 #'
 #' @return Data.Table with Details of Posts
 #'
@@ -419,28 +435,28 @@ getComments <- function(username, node){
 #' getPostsByTag("letseat", 1)
 #'
 #' @export
-getPostsByTag <- function(tag="steem", limit=1, node){
+getPostsByTag <- function(tag="Hive", limit=1, node){
   if(missing(node)){
-    node = "https://api.steemit.com"
+    node = "https://api.openhive.network"
   }
   results <- get_discussions_by_created(tag, limit, node)
   count <- length(results)
 
 
-  ##Convert the Raw Steem data to a cleaned data.table
+  ##Convert the Raw Hive data to a cleaned data.table
   results <- cleanData(results)
 
   return(results)
 }
 
 
-#' Number of Accounts on Steem Blockchain
+#' Number of Accounts on Hive Blockchain
 #'
-#' Get the count of the number of accounts on the Steem Blockchain
+#' Get the count of the number of accounts on the Hive Blockchain
 #'
 #' @param NULL
 #'
-#' @param node Optional Argument (Steem Node to Query)
+#' @param node Optional Argument (Hive Node to Query)
 #'
 #' @return number of accounts
 #'
@@ -450,32 +466,32 @@ getPostsByTag <- function(tag="steem", limit=1, node){
 #' @export
 accountCount <- function(node){
   if(missing(node)){
-    node = "https://api.steemit.com"
+    node = "https://api.openhive.network"
   }
   data <- get_account_count(node)
   paste("Number of Accounts : ", data$result)
 }
 
-#' Steem Proporties
+#' Hive Proporties
 #'
-#' Get details about the latest state of the Steem Blockchain.
+#' Get details about the latest state of the Hive Blockchain.
 #'
 #' @param NULL
 #'
-#' @param node Optional Argument (Steem Node to Query)
+#' @param node Optional Argument (Hive Node to Query)
 #'
-#' @return steem properties
+#' @return Hive properties
 #'
 #' @examples
-#' getSteemProperties()
+#' getHiveProperties()
 #'
 #' @export
-getSteemProperties <- function(node){
+getHiveProperties <- function(node){
   if(missing(node)){
-    node = "https://api.steemit.com"
+    node = "https://api.openhive.network"
   }
   data <- get_dynamic_global_properties(node)
-  data <- cleanGlobalProperties(data$result)
+  data <- cleanGlobalProperties(data)
   return(data)
 }
 
@@ -486,7 +502,7 @@ getSteemProperties <- function(node){
 #'
 #' @param username
 #'
-#' @param node Optional Argument (Steem Node to Query)
+#' @param node Optional Argument (Hive Node to Query)
 #'
 #' @return Account Details
 #'
@@ -496,7 +512,7 @@ getSteemProperties <- function(node){
 #' @export
 getAccount <- function(username, node){
   if(missing(node)){
-    node = "https://api.steemit.com"
+    node = "https://api.openhive.network"
   }
   data <- get_account(username, node)
   data <- cleanAccount(data)
@@ -504,8 +520,8 @@ getAccount <- function(username, node){
 }
 
 
-# Steem API Calls ----
-# These functions will be wrappers for the steem api calls
+# Hive API Calls ----
+# These functions will be wrappers for the Hive api calls
 
 #Get Delegations for an account
 get_vesting_delegations <- function(user="eroche", node){
@@ -519,6 +535,11 @@ get_vesting_delegations <- function(user="eroche", node){
 
 
 #Get Votes by an Account
+
+########
+##Seems to be no longer supported
+########
+
 get_account_votes <- function(user="eroche", node){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_account_votes", "params":["',user,'"], "id":1}')
 
@@ -528,10 +549,21 @@ get_account_votes <- function(user="eroche", node){
 
 }
 
+#Get Accounts ordered by name
+
+get_accounts <- function(user="eroche", node){
+  query <- paste0('{"jsonrpc":"2.0", "method":"database_api.list_accounts", "params":{"start":"","limit":',limit,',"order":"by_name"}, "id":1}')
+
+  r <- httr::POST(node, body = query)
+  data <- httr::content(r, "parsed", "application/json")
+  return(data$result)
+
+}
+
 
 #Get Posts filtered by a specific tag
-get_discussions_by_created <- function(tag="steem", limit=100, node){
-  query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_discussions_by_created", "params":[{"tag":"',tag,'","limit":',limit,'}], "id":1}')
+get_discussions_by_created <- function(tag="hive", limit=100, node){
+  query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_discussions_by_created", "params":[{"tag":"',tolower(tag),'","limit":',limit,'}], "id":1}')
 
   r <- httr::POST(node, body = query)
   data <- httr::content(r, "parsed", "application/json")
@@ -554,16 +586,16 @@ get_discussions_by_trending <- function(tag="", limit=100, node){
 #Get the posts from a user profile
 get_discussions_by_author_before_date <- function(username, permlink, node){
   link = paste0(',"start_permlink":"',permlink,'"')
-  query <- paste0('{"jsonrpc":"2.0", "method":"tags_api.get_discussions_by_author_before_date", "params":{"author":"',username,'","limit":100', link ,'}, "id":1}')
+  query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_discussions_by_author_before_date", "params":{"author":"',username,'","limit":100', link ,'}, "id":1}')
 
   r <- httr::POST(node, body = query)
   data <- httr::content(r, "parsed", "application/json")
-  discussions <- data$result$discussions
+  discussions <- data$result
   return(discussions)
 
 }
 
-# Get the top Steem Witnesses by Vote
+# Get the top Hive Witnesses by Vote
 get_witnesses_by_vote <- function(limit=1000, node){
   query <- paste('{"jsonrpc":"2.0", "method":"condenser_api.get_witnesses_by_vote", "params":[null,',limit,'], "id":1}')
   r <- httr::POST(node, body = query)
@@ -574,7 +606,7 @@ get_witnesses_by_vote <- function(limit=1000, node){
 
 
 
-# Get the latest steem account count from the Steem API calls
+# Get the latest Hive account count from the Hive API calls
 get_account_count <- function(node){
   query <- '{"jsonrpc":"2.0", "method":"condenser_api.get_account_count", "params":[], "id":1}'
   r <- httr::POST(node, body = query)
@@ -583,7 +615,7 @@ get_account_count <- function(node){
 }
 
 
-# Get the latest steem global properties from the Steem API calls
+# Get the latest Hive global properties from the Hive API calls
 get_dynamic_global_properties <- function(node){
   query <- '{"jsonrpc":"2.0", "method":"database_api.get_dynamic_global_properties", "id":1}'
   r <- httr::POST(node, body = query)
@@ -591,7 +623,7 @@ get_dynamic_global_properties <- function(node){
   return(data)
 }
 
-# Get the latest steem rewards fund from the Steem API calls
+# Get the latest Hive rewards fund from the Hive API calls
 get_rewards_fund <- function(node){
   query <- '{"jsonrpc":"2.0", "method":"database_api.get_reward_funds", "id":1}'
   r <- httr::POST(node, body = query)
@@ -600,7 +632,7 @@ get_rewards_fund <- function(node){
 }
 
 
-#Get the latest number of follow count for the specified user using the Steem API calls
+#Get the latest number of follow count for the specified user using the Hive API calls
 
 get_follow_count <- function(user, node){
   query <- paste0('{"jsonrpc":"2.0", "method":"follow_api.get_follow_count", "params":{"account":"', user ,'"}, "id":1}')
@@ -611,7 +643,7 @@ get_follow_count <- function(user, node){
 }
 
 #Get details of a users account
-## The Steem API function allows multiple accounts to be returned. We are ignoring this for now.
+## The Hive API function allows multiple accounts to be returned. We are ignoring this for now.
 
 get_account <- function(user, node){
   query <- paste0('{"jsonrpc":"2.0", "method":"condenser_api.get_accounts", "params":[["', user ,'"]], "id":1}')
@@ -622,7 +654,7 @@ get_account <- function(user, node){
 }
 
 
-#Get the authors that have been reblogged by the selected user using the Steem API calls
+#Get the authors that have been reblogged by the selected user using the Hive API calls
 
 get_blog_authors <- function(user, node){
   query <- paste0('{"jsonrpc":"2.0", "method":"follow_api.get_blog_authors", "params":{"blog_account":"', user ,'"}, "id":1}')
@@ -688,11 +720,11 @@ formatNum <- function(x){
 #Format and add a hyperlink to the data table
 
 createLink <- function(author,link, title) {
-  sprintf('<a href="https://steemit.com/@%s/%s" target="_blank">%s</a>',author, link, title)
+  sprintf('<a href="https://Hiveit.com/@%s/%s" target="_blank">%s</a>',author, link, title)
 }
 
 
-#utility convert the Steem Reputation to a 2 digit number. Ported Code to R to format rep in readable format https://github.com/steemit/steem-js/blob/master/src/formatter.js
+#utility convert the Hive Reputation to a 2 digit number. Ported Code to R to format rep in readable format https://github.com/Hiveit/Hive-js/blob/master/src/formatter.js
 
 reputation.formatter <- function(rep) {
   neg = grepl("-", rep)
@@ -707,7 +739,7 @@ reputation.formatter <- function(rep) {
   return(out)
 }
 
-#utility to convert the Steem Data Dump to a nice Data.Frame with relevant fields for analysis
+#utility to convert the Hive Data Dump to a nice Data.Frame with relevant fields for analysis
 
 cleanData <- function(discussions){
 
@@ -751,14 +783,14 @@ cleanData <- function(discussions){
 
     results[i,"body"] <- discussion$body
     results[i,"json"] <- discussion$json_metadata
-    results[i,"image_count"] <- length(fromJSON(discussion$json_metadata)$image)
+    results[i,"image_count"] <- length(rjson::fromJSON(discussion$json_metadata)$image)
 
 
 
     results[i,"body"] <- discussion$body
 
     results[i,"json"] <- discussion$json_metadata
-    results[i,"image_count"] <- length(fromJSON(discussion$json_metadata)$image)
+    results[i,"image_count"] <- length(rjson::fromJSON(discussion$json_metadata)$image)
 
     skip=FALSE
 
@@ -775,7 +807,7 @@ cleanData <- function(discussions){
         tags <- sub("(\"tags\":)( )?(\\[)", "", tags)
         tags <- gsub("\",( )*?\"", " ", tags)
         tags <- gsub("\"|\\]", "", tags)
-        results[i, "tags"] <- tags
+        results[i, "tags"] <- tags[[1]]
 
         ##Split tags and assign to 5 columns
         ## Assume only 5 tags max allowed, there may be more, so this does not cover all possibilities
@@ -809,9 +841,9 @@ cleanData <- function(discussions){
     ##results[i, "vote_details"] <- do.call(rbind, (lapply(data$result$discussions[[i]]$active_votes, unlist)))
 
 
-    results[i,"pending_payout"] <- tryCatch({ as.numeric(discussion$pending_payout_value$amount)/1000},error = function(e){ as.numeric(gsub("SBD", "", discussion$pending_payout_value))})
+    results[i,"pending_payout"] <- tryCatch({ as.numeric(discussion$pending_payout_value$amount)/1000},error = function(e){ as.numeric(gsub("HBD", "", discussion$pending_payout_value))})
 
-    results[i,"paid_payout"] <- tryCatch({ as.numeric(discussion$total_payout_value$amount)/1000},error=function(e){ as.numeric(gsub("SBD","",discussion$total_payout_value))})
+    results[i,"paid_payout"] <- tryCatch({ as.numeric(discussion$total_payout_value$amount)/1000},error=function(e){ as.numeric(gsub("HBD","",discussion$total_payout_value))})
 
 
   }
@@ -837,9 +869,9 @@ cleanData <- function(discussions){
 
 }
 
-## Convert Vests to Steem Power
+## Convert Vests to Hive Power
 vests.formatter <- function(x){
-  conversionFactor <- getSteemProperties()$total_vesting_shares/getSteemProperties()$total_vesting_fund_steem / 1000
+  conversionFactor <- getHiveProperties()$total_vesting_shares/getHiveProperties()$total_vesting_fund_Hive / 1000
   return(as.numeric(gsub("VESTS", "", x))/conversionFactor)
 }
 
@@ -853,7 +885,7 @@ cleanAccount <- function(data){
   profile_location=""
 
   tryCatch({
-    json <- fromJSON(data$json_metadata)
+    json <- rjson::fromJSON(data$json_metadata)
     profile_image <- json$profile$profile_image
 
     if (length(profile_image)==0) {profile_image=""}
@@ -872,8 +904,8 @@ cleanAccount <- function(data){
   data <- data.table(created=as.POSIXct(data$created, format="%Y-%m-%dT%H:%M:%S"),
                      rep=reputation.formatter(data$reputation),
                      post_count=data$post_count,
-                     balance=as.numeric(gsub("STEEM", "", data$balance)),
-                     savings=as.numeric(gsub("STEEM", "", data$savings_balance)),
+                     balance=as.numeric(gsub("HIVE", "", data$balance)),
+                     savings=as.numeric(gsub("HIVE", "", data$savings_balance)),
                      vesting=vests.formatter( data$vesting_shares),
                      vesting_delegated=vests.formatter( data$delegated_vesting_shares),
                      vesting_received=vests.formatter( data$received_vesting_shares),
@@ -886,17 +918,17 @@ cleanAccount <- function(data){
 
 ##Clean Dynamic Global Properties
 cleanGlobalProperties <- function(data){
-  data <- data.table::data.table(head_block=data$head_block_number,
-                     time=as.POSIXct(data$time, format="%Y-%m-%dT%H:%M:%S"),
-                     current_witness=data$current_witness,
-                     virtual_supply=as.numeric(data$virtual_supply[[1]]),
-                     current_supply=as.numeric(data$current_supply[[1]]),
-                     current_sbd_supply=as.numeric(data$current_sbd_supply[[1]]),
-                     total_vesting_fund_steem=as.numeric(data$total_vesting_fund_steem[[1]]),
-                     total_vesting_shares=as.numeric(data$total_vesting_shares[[1]]),
-                     total_reward_fund_steem=as.numeric(data$total_reward_fund_steem[[1]]),
-                     pending_rewarded_vesting_shares=as.numeric(data$pending_rewarded_vesting_shares[[1]]),
-                     pending_rewarded_vesting_steem=as.numeric(data$pending_rewarded_vesting_steem[[1]])
+  data <- data.table::data.table(head_block=data$result$head_block_number,
+                     time=as.POSIXct(data$result$time, format="%Y-%m-%dT%H:%M:%S"),
+                     current_witness=data$result$current_witness,
+                     virtual_supply=as.numeric(data$result$virtual_supply[[1]]),
+                     current_supply=as.numeric(data$result$current_supply[[1]]),
+                     current_sbd_supply=as.numeric(data$result$current_sbd_supply[[1]]),
+                     total_vesting_fund_Hive=as.numeric(data$result$total_vesting_fund_steem[[1]]),
+                     total_vesting_shares=as.numeric(data$result$total_vesting_shares[[1]]),
+                     total_reward_fund_Hive=as.numeric(data$result$total_reward_fund_steem[[1]]),
+                     pending_rewarded_vesting_shares=as.numeric(data$result$pending_rewarded_vesting_shares[[1]]),
+                     pending_rewarded_vesting_Hive=as.numeric(data$result$pending_rewarded_vesting_steem[[1]])
                      )
   return(data)
 }

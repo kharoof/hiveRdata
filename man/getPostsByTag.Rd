@@ -4,14 +4,14 @@
 \alias{getPostsByTag}
 \title{Recent Posts containing a particular tag.}
 \usage{
-getPostsByTag(tag = "steem", limit = 1, node)
+getPostsByTag(tag = "Hive", limit = 1, node)
 }
 \arguments{
 \item{tag}{tag to search.}
 
 \item{limit}{number of items to return}
 
-\item{node}{Optional Argument (Steem Node to Query)}
+\item{node}{Optional Argument (Hive Node to Query)}
 }
 \value{
 Data.Table with Details of Posts

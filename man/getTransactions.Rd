@@ -9,13 +9,14 @@ getTransactions(user, n, node)
 \arguments{
 \item{user}{Account To Query}
 
-\item{n}{Number of Transactions since beginnning of account history}
+\item{n}{Number of Transactions to Return (Optional)}
 }
 \value{
 The First n of transactions on an account
 }
 \description{
 This function may take some time to process depending on the size of the transaction history on an account
+Its timing out on large accounts
 }
 \examples{
 getTransactions("eroche", 100)

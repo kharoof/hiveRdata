@@ -2,7 +2,7 @@
 % Please edit documentation in R/functions.R
 \name{getPost}
 \alias{getPost}
-\title{Details of a Steem Post}
+\title{Details of a Hive Post}
 \usage{
 getPost(username, permlink, node)
 }
@@ -11,7 +11,7 @@ getPost(username, permlink, node)
 
 \item{permlink}{Permlink of Post}
 
-\item{node}{Optional Argument (Steem Node to Query)}
+\item{node}{Optional Argument (Hive Node to Query)}
 }
 \value{
 List with Details of Post
@@ -21,6 +21,6 @@ Get details of a post, specified by the unique link (username and permlink)
 }
 \examples{
 getPost("eroche", "time-series-with-r")
-getPost("eroche", "time-series-with-r", "https://api.steemit.com")
+getPost("eroche", "time-series-with-r", "https://api.openhive.network")
 
 }
