@@ -2,7 +2,7 @@
 
 hiveRdata is an R package to retrieve data from the Hive blockchain.
 
-![Steem Analytics](https://i.imgur.com/qUJoj4y.jpg)
+![Hive Analytics](https://images.hive.blog/DQmfUjEFbFLDryFsLj1xid7oKPbyxNhaJs6p9uMAG4yoyyH/social_hive_city.jpg)
 
 
 hiveRdata is part of the HiveAnalytics Suite of Applications for analysing data from the Hive Blockchain.
