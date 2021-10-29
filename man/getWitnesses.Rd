@@ -2,7 +2,7 @@
 % Please edit documentation in R/functions.R
 \name{getWitnesses}
 \alias{getWitnesses}
-\title{Current Hive Witnesse and Rank}
+\title{Top Hive Witnesses and Details}
 \usage{
 getWitnesses(limit = 1000, node)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/functions.R
 \name{getAccount}
 \alias{getAccount}
-\title{Account Details}
+\title{USer Account Details}
 \usage{
 getAccount(username, node)
 }
@@ -12,7 +12,7 @@ getAccount(username, node)
 \item{node}{Optional Argument (Hive Node to Query)}
 }
 \value{
-Account Details
+Key Elements of Account Details; created, rep, post count, hive balance, savings balance, vesting
 }
 \description{
 Get the details of a user account

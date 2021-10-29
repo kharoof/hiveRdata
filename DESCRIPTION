@@ -1,10 +1,10 @@
 Package: hiveRdata
 Type: Package
 Title: Download and Explore Data from the Hive Blockchain
-Version: 0.1.0
+Version: 0.2.0
 Author: Edward Roche <https://hive.blog/@eroche>
 Maintainer: Edward Roche <edderoiste@gmail.com>
-Description: Wrapper Functions to download and explore data from the Hive Blockchain via RPC calls (using the App Base API).
+Description: Wrapper Functions to access data from the Hive Blockchain via RPC calls (using the App Base API), and other sources provided by the Hive Community.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
@@ -18,4 +18,5 @@ Requires:
     ggrepel,
     httr,
     rjson,
-    htmltab
+    htmltab,
+    stringr
